@@ -4,7 +4,8 @@
   "description": "Talc is a experiment to create posts from Markdown",
   "main": "index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "tw": "ava --watch"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,7 @@
   },
   "homepage": "https://github.com/gonzofish/talc#readme",
   "devDependencies": {
-    "ava": "^2.2.0"
+    "ava": "2.2.0",
+    "prettier": "1.18.2"
   }
 }
