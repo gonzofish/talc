@@ -4,8 +4,8 @@
   "description": "Talc is a experiment to create posts from Markdown",
   "main": "index.js",
   "scripts": {
-    "test": "ava",
-    "tw": "ava --watch"
+    "test": "ava  --verbose",
+    "tw": "ava --verbose --watch"
   },
   "repository": {
     "type": "git",
