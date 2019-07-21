@@ -5,16 +5,16 @@ a static site.
 
 ## 📝 To-Dos
 
-- [ ] Read configuration file
-  - [ ] Input directory
-  - [ ] Output directory
-  - [ ] Filename formats
-    - [ ] Input format
-    - [ ] Output format
-  - [ ] Defaults if no configuration present
-- [ ] Generate first Markdown file
+- [x] Read configuration file
+  - [x] Input directory
+  - [x] Output directory
+  - [x] Filename formats
+    - [x] Input format
+    - [x] Output format
+  - [x] Defaults if no configuration present
+- [x] Generate first Markdown file
   - [ ] Command to create a file
-  - [ ] Use filename format for input
+  - [x] Use filename format for input
 - [ ] Convert Markdown file to HTML
   - [ ] Read from input directory
   - [ ] Output to output directory
