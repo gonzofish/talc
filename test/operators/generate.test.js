@@ -2,7 +2,7 @@ const test = require('ava').default;
 const fs = require('fs');
 const sinon = require('sinon');
 
-const generate = require('../lib/generate');
+const generate = require('../../lib/operators/generate');
 
 test.before(() => {
   const myDate = new Date('2018-08-03 00:00:00');
