@@ -2,7 +2,8 @@
   "name": "talc",
   "version": "1.0.0-alpha.0",
   "description": "Talc is a experiment to create posts from Markdown",
-  "main": "index.js",
+  "bin": "bin/talc.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "ava  --verbose",
     "tw": "ava --verbose --watch"
@@ -25,6 +26,7 @@
     "url": "https://github.com/gonzofish/talc/issues"
   },
   "files": [
+    "bin",
     "lib"
   ],
   "homepage": "https://github.com/gonzofish/talc#readme",
