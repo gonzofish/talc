@@ -13,7 +13,7 @@ a static site.
     - [x] ~~Output format~~
   - [x] Defaults if no configuration present
 - [x] Generate first Markdown file
-  - [ ] Command to create a file
+  - [x] Command to create a file
   - [x] Use filename format for input
 - [ ] Convert Markdown file to HTML
   - [ ] Read from input directory
