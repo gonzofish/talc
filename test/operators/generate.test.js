@@ -5,7 +5,7 @@ const sinon = require('sinon');
 const generate = require('../../lib/operators/generate');
 
 test.before(() => {
-  const myDate = new Date('2018-08-03 00:00:00');
+  const myDate = new Date('2018-08-03 12:34:00');
   const now = myDate.valueOf();
 
   sinon.useFakeTimers({ now });
@@ -17,54 +17,48 @@ test.after(() => {
 
 test('should create a file using the config options', (t) => {
   const config = {
-    input: {
-      dir: 'my_posts',
-      nameFormat: '[date]-[title]',
-    },
+    input: 'my_posts',
   };
-  const filename = 'my_posts/2018-08-03-my-first-post.md';
+  const filename = 'my_posts/20180803_1234_my-first-post.md';
   const sandbox = sinon.createSandbox();
   const writeFile = sandbox.stub(fs, 'writeFileSync');
+  const contents = `---
+date: 2018-08-03 12:34
+title: My First Post
+---
+
+`;
+
+  sandbox.stub(fs, 'existsSync').returns(true);
 
   generate('My First Post', config);
 
-  t.true(writeFile.calledWith(filename));
+  t.true(writeFile.calledWith(filename, contents));
 
   sandbox.restore();
 });
 
-test('should handle a trailing literal', (t) => {
+test('should create the input directory if it does not exist', (t) => {
   const config = {
-    input: {
-      dir: 'my_posts',
-      nameFormat: '[date]-[title]__post',
-    },
+    input: 'my_posts',
   };
-  const filename = 'my_posts/2018-08-03-my-first-entry__post.md';
+  const filename = 'my_posts/20180803_1234_my-first-entry.md';
   const sandbox = sinon.createSandbox();
   const writeFile = sandbox.stub(fs, 'writeFileSync');
+  const mkdir = sandbox.stub(fs, 'mkdirSync');
+  const contents = `---
+date: 2018-08-03 12:34
+title: My First Entry
+---
+
+`;
+
+  sandbox.stub(fs, 'existsSync').returns(false);
 
   generate('My First Entry', config);
 
-  t.true(writeFile.calledWith(filename));
-
-  sandbox.restore();
-});
-
-test('should ignore unknown variables', (t) => {
-  const config = {
-    input: {
-      dir: 'my_posts',
-      nameFormat: '[date]-[title]-[pizza]',
-    },
-  };
-  const filename = 'my_posts/2018-08-03-my-first-entry-.md';
-  const sandbox = sinon.createSandbox();
-  const writeFile = sandbox.stub(fs, 'writeFileSync');
-
-  generate('My First Entry', config);
-
-  t.true(writeFile.calledWith(filename));
+  t.true(mkdir.calledWith('my_posts'));
+  t.true(writeFile.calledWith(filename, contents));
 
   sandbox.restore();
 });

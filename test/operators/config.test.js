@@ -18,14 +18,8 @@ test.after(() => {
 
 test('should look for a config file next to the nearest package.json', (t) => {
   userConfig = {
-    input: {
-      dir: 'posts',
-      nameFormat: '[date] [title]',
-    },
-    output: {
-      dir: 'published',
-      nameFormat: '[title] [date]',
-    },
+    input: 'posts',
+    output: 'published',
   };
 
   t.deepEqual(load(), userConfig);
@@ -34,35 +28,18 @@ test('should look for a config file next to the nearest package.json', (t) => {
 test('should use a default config if one is not present', (t) => {
   userConfig = undefined;
   t.deepEqual(load(), {
-    input: {
-      dir: 'input',
-      nameFormat: '[date]_[title]',
-    },
-    output: {
-      dir: 'output',
-      nameFormat: '[date]_[title]',
-    },
+    input: 'input',
+    output: 'output',
   });
 });
 
 test('should use a partial config', (t) => {
   userConfig = {
-    input: {
-      dir: 'pizza',
-    },
-    output: {
-      nameFormat: '[date]',
-    },
+    input: 'pizza',
   };
 
   t.deepEqual(load(), {
-    input: {
-      dir: 'pizza',
-      nameFormat: '[date]_[title]',
-    },
-    output: {
-      dir: 'output',
-      nameFormat: '[date]',
-    },
+    input: 'pizza',
+    output: 'output',
   });
 });
