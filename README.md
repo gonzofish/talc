@@ -8,9 +8,9 @@ a static site.
 - [x] Read configuration file
   - [x] Input directory
   - [x] Output directory
-  - [x] Filename formats
-    - [x] Input format
-    - [x] Output format
+  - [x] ~~Filename formats~~
+    - [x] ~~Input format~~
+    - [x] ~~Output format~~
   - [x] Defaults if no configuration present
 - [x] Generate first Markdown file
   - [ ] Command to create a file
