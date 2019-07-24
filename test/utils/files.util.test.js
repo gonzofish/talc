@@ -87,3 +87,80 @@ test('#readFiles should return files of a specified extension', (t) => {
 
   sandbox.restore();
 });
+
+test('#writeFiles should write a list of files to a directory', (t) => {
+  const sandbox = sinon.createSandbox();
+  const writeFile = sandbox.stub(fs, 'writeFileSync');
+  const dir = 'some/dir';
+
+  sandbox.stub(fs, 'existsSync').returns(true);
+
+  files.writeFiles(dir, [
+    {
+      contents: '# Here is My Header\n\nThis is some content\n\nSO is this',
+      filename: 'file_a.md',
+    },
+    {
+      contents: 'A plain text file',
+      filename: 'plain.txt',
+    },
+    {
+      contents: '         \n\n   \n  ',
+      filename: 'empty.txt',
+    },
+  ]);
+
+  t.is(writeFile.callCount, 2);
+  t.deepEqual(writeFile.firstCall.args, [
+    `${dir}${path.sep}file_a.md`,
+    '# Here is My Header\n\nThis is some content\n\nSO is this',
+    { encoding: 'utf8' },
+  ]);
+  t.deepEqual(writeFile.secondCall.args, [
+    `${dir}${path.sep}plain.txt`,
+    'A plain text file',
+    { encoding: 'utf8' },
+  ]);
+
+  sandbox.restore();
+});
+
+test('#writeFiles should create the directory if it does not exist', (t) => {
+  const sandbox = sinon.createSandbox();
+  const mkdir = sandbox.stub(fs, 'mkdirSync');
+  const dir = 'missing/folder';
+
+  sandbox.stub(fs, 'writeFileSync');
+  sandbox.stub(fs, 'existsSync').returns(false);
+
+  files.writeFiles(dir, [
+    {
+      contents: 'Write me',
+      filename: 'write.txt',
+    },
+  ]);
+
+  t.true(mkdir.calledWith(dir));
+
+  sandbox.restore();
+});
+
+test('#writeFiles should NOT create the directory if no files have contents', (t) => {
+  const sandbox = sinon.createSandbox();
+  const mkdir = sandbox.stub(fs, 'mkdirSync');
+  const writeFile = sandbox.stub(fs, 'writeFileSync');
+
+  sandbox.stub(fs, 'existsSync').returns(false);
+
+  files.writeFiles('wontmatter', [
+    {
+      contents: null,
+      filename: 'write.txt',
+    },
+  ]);
+
+  t.true(mkdir.notCalled);
+  t.true(writeFile.notCalled);
+
+  sandbox.restore();
+});
