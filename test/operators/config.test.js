@@ -20,6 +20,7 @@ test('should look for a config file next to the nearest package.json', (t) => {
   userConfig = {
     input: 'posts',
     output: 'published',
+    template: 'my-template.html',
   };
 
   t.deepEqual(load(), userConfig);
@@ -30,6 +31,7 @@ test('should use a default config if one is not present', (t) => {
   t.deepEqual(load(), {
     input: 'input',
     output: 'output',
+    template: null,
   });
 });
 
@@ -41,5 +43,6 @@ test('should use a partial config', (t) => {
   t.deepEqual(load(), {
     input: 'pizza',
     output: 'output',
+    template: null,
   });
 });
