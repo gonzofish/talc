@@ -11,9 +11,10 @@ test('should convert a markdown file to HTML via showdown', (t) => {
     input: 'input',
     output: 'output',
   };
-  const converter = {
+  const converterMock = {
     makeHtml: sinon.spy((contents) => `HTML\n\n${contents}`),
   };
+  const Converter = sandbox.stub(showdown, 'Converter').returns(converterMock);
   const writeFiles = sandbox.stub(files, 'writeFiles');
   const readFiles = sandbox.stub(files, 'readFiles').returns([
     {
@@ -30,10 +31,9 @@ test('should convert a markdown file to HTML via showdown', (t) => {
     },
   ]);
 
-  sandbox.stub(showdown, 'Converter').returns(converter);
-
   convert(config);
 
+  t.true(Converter.calledWith());
   t.true(readFiles.calledWith('input', 'md'));
   t.true(
     writeFiles.calledWith('output', [
@@ -54,3 +54,5 @@ test('should convert a markdown file to HTML via showdown', (t) => {
 
   sandbox.restore();
 });
+
+// NEED TO PARSE YAML metadata
