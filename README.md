@@ -15,7 +15,8 @@ a static site.
 - [x] Generate first Markdown file
   - [x] Command to create a file
   - [x] Use filename format for input
-- [ ] Convert Markdown file to HTML
-  - [ ] Read from input directory
-  - [ ] Output to output directory
+- [x] Convert Markdown file to HTML
+  - [x] Read from input directory
+  - [x] Output to output directory
+  - [ ] Insert outputs into a template
 - [ ] Create index/main page that lists converted files
