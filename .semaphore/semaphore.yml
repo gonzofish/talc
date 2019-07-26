@@ -8,7 +8,8 @@ blocks:
   - name: Install dependencies
     task:
       env_vars:
-        - NODE_ENV=test
+        - name: NODE_ENV
+          value: test
       secrets:
         - name: codecov
       prologue:
