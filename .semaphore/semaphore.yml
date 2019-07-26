@@ -7,11 +7,6 @@ agent:
 blocks:
   - name: Install dependencies
     task:
-      env_vars:
-        - name: NODE_ENV
-          value: test
-      secrets:
-        - name: codecov
       prologue:
         commands:
           - checkout
@@ -26,6 +21,8 @@ blocks:
             - cache store node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json) node_modules
   - name: Tests
     task:
+      secrets:
+        - name: codecov
       prologue:
         commands:
           - checkout
