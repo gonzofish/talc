@@ -1,1 +1,3 @@
+.nyc*
+coverage
 node_modules

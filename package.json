@@ -5,6 +5,8 @@
   "bin": "bin/talc.js",
   "main": "lib/index.js",
   "scripts": {
+    "coverage": "nyc ava",
+    "covhtml": "nyc --reporter=lcov --reporter=text-summary ava",
     "test": "ava  --verbose",
     "tw": "ava --verbose --watch"
   },
@@ -36,6 +38,7 @@
     "eslint-config-prettier": "6.0.0",
     "eslint-plugin-node": "9.1.0",
     "eslint-plugin-prettier": "3.1.0",
+    "nyc": "^14.1.1",
     "prettier": "1.18.2",
     "sinon": "7.3.2"
   },
