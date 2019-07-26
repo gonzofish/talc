@@ -36,4 +36,5 @@ blocks:
         - name: Run tests
           commands:
             - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
+            - echo $CODECOV_TOKEN
             - CODECOV_TOKEN=$CODECOV_TOKEN npm run codecov
