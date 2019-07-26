@@ -5,7 +5,7 @@
   "bin": "bin/talc.js",
   "main": "lib/index.js",
   "scripts": {
-    "codecov": "npm run coverage && npm run covreport && codecov --disable=detect",
+    "codecov": "npm run coverage && npm run covreport && codecov --branch=$SEMAPHORE_GIT_BRANCH --commit=$SEMAPHORE_GIT_SHA --disable=detect",
     "coverage": "nyc ava",
     "covhtml": "nyc --reporter=lcov --reporter=text-summary ava",
     "covreport": "nyc report --reporter=text-lcov > coverage.lcov",
