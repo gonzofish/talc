@@ -5,8 +5,10 @@
   "bin": "bin/talc.js",
   "main": "lib/index.js",
   "scripts": {
+    "codecov": "npm run coverage && npm run covreport && codecov",
     "coverage": "nyc ava",
     "covhtml": "nyc --reporter=lcov --reporter=text-summary ava",
+    "covreport": "nyc report --reporter=text-lcov > coverage.lcov",
     "test": "ava  --verbose",
     "tw": "ava --verbose --watch"
   },
@@ -34,6 +36,7 @@
   "homepage": "https://github.com/gonzofish/talc#readme",
   "devDependencies": {
     "ava": "2.2.0",
+    "codecov": "^3.5.0",
     "eslint": "6.1.0",
     "eslint-config-prettier": "6.0.0",
     "eslint-plugin-node": "9.1.0",
