@@ -7,7 +7,7 @@ agent:
 blocks:
   - name: Install dependencies
     task:
-      env_var:
+      env_vars:
         - NODE_ENV=test
       secrets:
         - name: codecov
