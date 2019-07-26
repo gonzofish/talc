@@ -33,5 +33,5 @@ blocks:
         - name: Run tests
           commands:
             - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
-            - git tag
+            - echo "$SEMAPHORE_GIT_BRANCH"
             - npm run codecov
