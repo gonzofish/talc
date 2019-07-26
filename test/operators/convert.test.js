@@ -119,6 +119,12 @@ test('should insert HTML contents into a template, if one exists', (t) => {
     ]),
   );
 
+  const findComment = mockCheerioChain.filter.firstCall.args[0];
+
+  t.true(findComment(0, { type: 'comment', data: 'talc-content   ' }));
+  t.false(findComment(1, { type: 'a', data: 'talc-content' }));
+  t.false(findComment(2, { type: 'comment', data: 'talccontent' }));
+
   sandbox.restore();
 });
 
