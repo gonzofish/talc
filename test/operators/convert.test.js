@@ -10,22 +10,49 @@ const convert = require('../../lib/operators/convert');
 const setup = () => {
   const sandbox = sinon.createSandbox();
   const converterMock = {
-    makeHtml: sinon.spy((contents) => `HTML\n\n${contents}`),
+    makeHtml: sinon.spy((contents) => {
+      const metadataEnd = contents.lastIndexOf('---');
+      let mainContent = contents;
+
+      if (metadataEnd) {
+        mainContent = contents.slice(metadataEnd + 3).trim();
+      }
+
+      return `HTML\n\n${mainContent}`;
+    }),
   };
 
   sandbox.stub(showdown, 'Converter').returns(converterMock);
   sandbox.stub(files, 'writeFiles');
   sandbox.stub(files, 'readFiles').returns([
     {
-      contents: '# File #1',
+      contents: `---
+title: File #1
+published_date: 2018-08-03 08:01:00
+---
+# File #1
+`,
       filename: 'file1.md',
     },
     {
-      contents: '# File Ehhhhh',
+      contents: `---
+title: File Ehhhhh
+published_date: 2010-03-27 04:30:30
+---
+# File Ehhhhh
+`,
       filename: 'fileA.md',
     },
     {
-      contents: '# Sleepy Time\n\nZzz',
+      contents: `---
+title: Sleepy Time
+created_date: 2018-08-13 00:00:00
+published_date: 1984-08-13 08:01:00
+---
+# Sleepy Time
+
+Zzz
+`,
       filename: 'Zzz.md',
     },
   ]);
@@ -45,7 +72,7 @@ test('should convert a markdown file to HTML via showdown', (t) => {
 
   convert(config);
 
-  t.true(showdown.Converter.calledWith());
+  t.true(showdown.Converter.calledWith({ metadata: true }));
   t.true(files.readFiles.calledWith('input', 'md'));
   t.true(
     files.writeFiles.calledWith('output', [
