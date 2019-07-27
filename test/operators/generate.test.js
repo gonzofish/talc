@@ -3,12 +3,10 @@ const fs = require('fs');
 const sinon = require('sinon');
 
 const generate = require('../../lib/operators/generate');
+const datesUtil = require('../../lib/utils/dates.util');
 
 test.before(() => {
-  const myDate = new Date('2018-08-03 12:34:00');
-  const now = myDate.valueOf();
-
-  sinon.useFakeTimers({ now });
+  sinon.stub(datesUtil, 'getCurrent').returns('2018-08-03 12:34:00');
 });
 
 test.after(() => {
