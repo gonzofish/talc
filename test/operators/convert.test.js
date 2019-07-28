@@ -12,12 +12,29 @@ const fixtures = require('./fixtures');
 const setup = () => {
   const sandbox = sinon.createSandbox();
   const converterMock = {
+    metadata: {},
+    getMetadata: () => converterMock.metadata,
     makeHtml: sinon.spy((contents) => {
       const metadataEnd = contents.lastIndexOf('---');
       let mainContent = contents;
 
       if (metadataEnd) {
         mainContent = contents.slice(metadataEnd + 3).trim();
+
+        const variables = contents
+          .slice(0, metadataEnd)
+          .replace(/---/g, '')
+          .trim()
+          .split(/\n/);
+        const metadata = {};
+
+        for (const variable of variables) {
+          const [name, value] = variable.split(':').map((item) => item.trim());
+
+          metadata[name] = value;
+        }
+
+        converterMock.metadata = metadata;
       }
 
       return `HTML\n\n${mainContent}`;
@@ -48,16 +65,16 @@ test('should convert a markdown file to HTML via showdown', (t) => {
   t.true(
     files.writeFiles.calledWith('output', [
       {
-        contents: 'HTML\n\n# File #1',
-        filename: 'file1.html',
+        contents: 'HTML\n\nFirst!!1',
+        filename: 'file-1.html',
       },
       {
-        contents: 'HTML\n\n# File Ehhhhh',
-        filename: 'fileA.html',
+        contents: 'HTML\n\nThis file is so iffy',
+        filename: 'file-ehhhhh.html',
       },
       {
-        contents: 'HTML\n\n# Sleepy Time\n\nZzz',
-        filename: 'Zzz.html',
+        contents: 'HTML\n\nZzz',
+        filename: 'sleepy-time.html',
       },
     ]),
   );
@@ -95,24 +112,24 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   t.true(mockCheerio.calledWith('*'));
   t.is(mockCheerioChain.contents.callCount, 3);
   t.is(mockCheerioChain.filter.callCount, 3);
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\n# File #1'));
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\n# File Ehhhhh'));
+  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\nFirst!!1'));
   t.true(
-    mockCheerioChain.replaceWith.calledWith('HTML\n\n# Sleepy Time\n\nZzz'),
+    mockCheerioChain.replaceWith.calledWith('HTML\n\nThis file is so iffy'),
   );
+  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\nZzz'));
   t.true(
     files.writeFiles.calledWith('output', [
       {
         contents: 'CHEERIO! 1',
-        filename: 'file1.html',
+        filename: 'file-1.html',
       },
       {
         contents: 'CHEERIO! 2',
-        filename: 'fileA.html',
+        filename: 'file-ehhhhh.html',
       },
       {
         contents: 'CHEERIO! 3',
-        filename: 'Zzz.html',
+        filename: 'sleepy-time.html',
       },
     ]),
   );
