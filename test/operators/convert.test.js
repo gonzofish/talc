@@ -29,9 +29,12 @@ const setup = () => {
         const metadata = {};
 
         for (const variable of variables) {
-          const [name, value] = variable.split(':').map((item) => item.trim());
+          const matches = variable.match(/^([^:]+):(.+)$/);
 
-          metadata[name] = value;
+          if (matches) {
+            const [, name, value] = matches;
+            metadata[name.trim()] = value.trim();
+          }
         }
 
         converterMock.metadata = metadata;
@@ -67,14 +70,27 @@ test('should convert a markdown file to HTML via showdown', (t) => {
       {
         contents: 'HTML\n\nFirst!!1',
         filename: 'file-1.html',
+        metadata: {
+          publish_date: '2018-08-03 08:01:00',
+          title: 'File #1',
+        },
       },
       {
         contents: 'HTML\n\nThis file is so iffy',
         filename: 'file-ehhhhh.html',
+        metadata: {
+          publish_date: '2010-03-27 04:30:30',
+          title: 'File Ehhhhh',
+        },
       },
       {
         contents: 'HTML\n\nZzz',
         filename: 'sleepy-time.html',
+        metadata: {
+          created_date: '1984-08-13 02:30:00',
+          publish_date: '2002-08-13 00:00:00',
+          title: 'Sleepy Time',
+        },
       },
     ]),
   );
@@ -93,14 +109,15 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   const mockCheerioChain = {
     contents: sinon.spy(() => mockCheerioChain),
     filter: sinon.spy(() => mockCheerioChain),
-    replaceWith: sinon.spy(),
+    replaceWith: sinon.spy((fn) =>
+      fn(0, {
+        data: 'talc:content',
+      }),
+    ),
   };
   const mockCheerio = sinon.spy(() => mockCheerioChain);
 
   mockCheerio.html = sinon.spy(() => `CHEERIO! ${mockCheerio.html.callCount}`);
-  // mockCheerioChain.contents = sinon.spy(() => mockCheerioChain);
-  // mockCheerioChain.filter = sinon.spy(() => mockCheerioChain);
-  // mockCheerioChain.replaceWith = sinon.spy();
 
   sandbox.stub(cheerio, 'load').returns(mockCheerio);
   sandbox.stub(files, 'readFile').returns(template);
@@ -112,37 +129,43 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   t.true(mockCheerio.calledWith('*'));
   t.is(mockCheerioChain.contents.callCount, 3);
   t.is(mockCheerioChain.filter.callCount, 3);
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\nFirst!!1'));
-  t.true(
-    mockCheerioChain.replaceWith.calledWith('HTML\n\nThis file is so iffy'),
-  );
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\nZzz'));
+  t.is(mockCheerioChain.replaceWith.callCount, 3);
   t.true(
     files.writeFiles.calledWith('output', [
       {
         contents: 'CHEERIO! 1',
         filename: 'file-1.html',
+        metadata: {
+          publish_date: '2018-08-03 08:01:00',
+          title: 'File #1',
+        },
       },
       {
         contents: 'CHEERIO! 2',
         filename: 'file-ehhhhh.html',
+        metadata: {
+          publish_date: '2010-03-27 04:30:30',
+          title: 'File Ehhhhh',
+        },
       },
       {
         contents: 'CHEERIO! 3',
         filename: 'sleepy-time.html',
+        metadata: {
+          created_date: '1984-08-13 02:30:00',
+          publish_date: '2002-08-13 00:00:00',
+          title: 'Sleepy Time',
+        },
       },
     ]),
   );
 
   const findComment = mockCheerioChain.filter.firstCall.args[0];
 
-  t.true(findComment(0, { type: 'comment', data: 'talc-content   ' }));
-  t.false(findComment(1, { type: 'a', data: 'talc-content' }));
-  t.false(findComment(2, { type: 'comment', data: 'talccontent' }));
+  t.true(findComment(0, { type: 'comment', data: 'talc:content   ' }));
+  t.true(findComment(1, { type: 'comment', data: 'talc:publish_date' }));
+  t.false(findComment(2, { type: 'a', data: 'talc:content' }));
+  t.false(findComment(3, { type: 'comment', data: 'talccontent' }));
 
   sandbox.restore();
 });
-
-// NEED TO PARSE YAML metadata to use as variables
-// variables will be talc:<variable>
-// understood vars: title, date, tags (comma-separated)
