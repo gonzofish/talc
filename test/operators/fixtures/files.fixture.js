@@ -2,6 +2,7 @@ module.exports = [
   {
     contents: `---
 title: File #1
+unknown: hey yo
 publish_date: 2018-08-03 08:01:00
 ---
 
