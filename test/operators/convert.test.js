@@ -201,6 +201,7 @@ test('should be able to use nested for loops', (t) => {
     {
       contents: `---
 title: I Have Tags
+create_date: 2017-11-13 09:30:00
 publish_date: 2018-08-03 08:01:00
 tags: birth,ben,love
 ---
@@ -220,6 +221,7 @@ My boy was born today!
         contents: compiledTemplate,
         filename: 'i-have-tags.html',
         metadata: {
+          create_date: '2017-11-13',
           title: 'I Have Tags',
           publish_date: '2018-08-03',
           tags: ['birth', 'ben', 'love'],
