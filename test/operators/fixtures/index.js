@@ -4,6 +4,7 @@ const load = (fixtureName) => {
   try {
     fixture = require(`./${fixtureName}.fixture`);
   } catch (e) {
+    console.error(e);
     console.error(`The fixture ${fixtureName} doesn't exist`);
   }
 
