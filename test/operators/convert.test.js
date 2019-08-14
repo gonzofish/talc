@@ -8,6 +8,7 @@ const dates = require('../../lib/utils/dates.util');
 const files = require('../../lib/utils/files.util');
 
 const fixtures = require('./fixtures');
+const templateLoader = require('./fixtures/template-loader');
 
 const setupWithTemplate = (template) => {
   const { sandbox } = setup();
@@ -229,6 +230,66 @@ My boy was born today!
       },
     ],
   ]);
+
+  sandbox.restore();
+});
+
+test('should compile an index template if present in the config', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+  const compiledIndexTemplate = templateLoader('compiled-index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    dateFormat: 'yyyy-MM-dd',
+    index: 'my-index-template.html',
+    input: 'input',
+    output: 'output',
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-index-template.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 3);
+
+  t.is(fileList[2].contents, compiledIndexTemplate);
 
   sandbox.restore();
 });

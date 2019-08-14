@@ -41,6 +41,10 @@ test('#findRoot should find the nearest directory with a package.json', (t) => {
   process.chdir(projRoot);
 });
 
+test('#findRoot should just return undefined if it reaches the system root', (t) => {
+  t.is(files.findRoot('/'), undefined);
+});
+
 test('#readFiles should return the files listed in a specified directory', (t) => {
   const sandbox = setupReadFiles();
 

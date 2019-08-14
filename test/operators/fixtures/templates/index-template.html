@@ -1,13 +1,14 @@
 <html>
   <head>
-    <title>Template with Loops</title>
+    <title>List of Posts</title>
   </head>
 
   <body>
     <ul>
       <!-- talc:for:files -->
       <li>
-        [<em><!-- talc:date --></em>] <strong><!-- talc:title --></strong><br />
+        <strong><!-- talc:title --></strong><br />
+        [<em><!-- talc:publish_date --></em>]
 
         <div class="tags">
           <!-- talc:for:tags -->
