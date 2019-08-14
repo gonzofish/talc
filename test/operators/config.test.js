@@ -18,6 +18,8 @@ test.after(() => {
 
 test('should look for a config file next to the nearest package.json', (t) => {
   userConfig = {
+    dateFormat: 'M/d/yyyy',
+    index: 'my-index.html',
     input: 'posts',
     output: 'published',
     template: 'my-template.html',
@@ -29,6 +31,8 @@ test('should look for a config file next to the nearest package.json', (t) => {
 test('should use a default config if one is not present', (t) => {
   userConfig = undefined;
   t.deepEqual(load(), {
+    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    index: null,
     input: 'input',
     output: 'output',
     template: null,
@@ -41,6 +45,8 @@ test('should use a partial config', (t) => {
   };
 
   t.deepEqual(load(), {
+    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    index: null,
     input: 'pizza',
     output: 'output',
     template: null,

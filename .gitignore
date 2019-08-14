@@ -1,3 +1,4 @@
 .nyc*
 coverage*
 node_modules
+settings.json

@@ -1,34 +1,64 @@
 const test = require('ava').default;
 const sinon = require('sinon');
 
-const cheerio = require('cheerio');
 const showdown = require('showdown');
 
-const files = require('../../lib/utils/files.util');
 const convert = require('../../lib/operators/convert');
+const dates = require('../../lib/utils/dates.util');
+const files = require('../../lib/utils/files.util');
+
+const fixtures = require('./fixtures');
+const templateLoader = require('./fixtures/template-loader');
+
+const setupWithTemplate = (template) => {
+  const { sandbox } = setup();
+
+  sandbox.stub(files, 'readFile').returns(template);
+
+  return {
+    sandbox,
+    template,
+  };
+};
 
 const setup = () => {
   const sandbox = sinon.createSandbox();
   const converterMock = {
-    makeHtml: sinon.spy((contents) => `HTML\n\n${contents}`),
+    metadata: {},
+    getMetadata: () => converterMock.metadata,
+    makeHtml: sinon.spy((contents) => {
+      const metadataEnd = contents.lastIndexOf('---');
+      let mainContent = contents;
+
+      if (metadataEnd) {
+        mainContent = contents.slice(metadataEnd + 3).trim();
+
+        const variables = contents
+          .slice(0, metadataEnd)
+          .replace(/---/g, '')
+          .trim()
+          .split(/\n/);
+        const metadata = {};
+
+        for (const variable of variables) {
+          const matches = variable.match(/^([^:]+):(.+)$/);
+
+          if (matches) {
+            const [, name, value] = matches;
+            metadata[name.trim()] = value.trim();
+          }
+        }
+
+        converterMock.metadata = metadata;
+      }
+
+      return `HTML\n\n${mainContent}`;
+    }),
   };
 
   sandbox.stub(showdown, 'Converter').returns(converterMock);
   sandbox.stub(files, 'writeFiles');
-  sandbox.stub(files, 'readFiles').returns([
-    {
-      contents: '# File #1',
-      filename: 'file1.md',
-    },
-    {
-      contents: '# File Ehhhhh',
-      filename: 'fileA.md',
-    },
-    {
-      contents: '# Sleepy Time\n\nZzz',
-      filename: 'Zzz.md',
-    },
-  ]);
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
 
   return {
     converterMock,
@@ -39,27 +69,42 @@ const setup = () => {
 test('should convert a markdown file to HTML via showdown', (t) => {
   const { sandbox } = setup();
   const config = {
+    dateFormat: 'YYYY-MM-dd HH:mm:ss',
     input: 'input',
     output: 'output',
   };
 
   convert(config);
 
-  t.true(showdown.Converter.calledWith());
+  t.true(showdown.Converter.calledWith({ metadata: true }));
   t.true(files.readFiles.calledWith('input', 'md'));
   t.true(
     files.writeFiles.calledWith('output', [
       {
-        contents: 'HTML\n\n# File #1',
-        filename: 'file1.html',
+        contents: 'HTML\n\nFirst!!1',
+        filename: 'file-1.html',
+        metadata: {
+          publish_date: '2018-08-03 08:01:00',
+          title: 'File #1',
+          unknown: 'hey yo',
+        },
       },
       {
-        contents: 'HTML\n\n# File Ehhhhh',
-        filename: 'fileA.html',
+        contents: 'HTML\n\nThis file is so iffy',
+        filename: 'file-ehhhhh.html',
+        metadata: {
+          publish_date: '2010-03-27 04:30:30',
+          title: 'File Ehhhhh',
+        },
       },
       {
-        contents: 'HTML\n\n# Sleepy Time\n\nZzz',
-        filename: 'Zzz.html',
+        contents: 'HTML\n\nZzz',
+        filename: 'sleepy-time.html',
+        metadata: {
+          created_date: '1984-08-13 02:30:00',
+          publish_date: '2002-08-13 00:00:00',
+          title: 'Sleepy Time',
+        },
       },
     ]),
   );
@@ -68,66 +113,183 @@ test('should convert a markdown file to HTML via showdown', (t) => {
 });
 
 test('should insert HTML contents into a template, if one exists', (t) => {
-  const { sandbox } = setup();
+  const template = '<html><body>my template</body></html>';
+  const { sandbox } = setupWithTemplate(template);
   const config = {
+    dateFormat: 'YYYY-MM-dd HH:mm:ss',
     input: 'input',
     output: 'output',
     template: 'my-template.html',
   };
-  const template = '<html><body>my template</body></html>';
-  const mockCheerioChain = {
-    contents: sinon.spy(() => mockCheerioChain),
-    filter: sinon.spy(() => mockCheerioChain),
-    replaceWith: sinon.spy(),
-  };
-  const mockCheerio = sinon.spy(() => mockCheerioChain);
-
-  mockCheerio.html = sinon.spy(() => `CHEERIO! ${mockCheerio.html.callCount}`);
-  // mockCheerioChain.contents = sinon.spy(() => mockCheerioChain);
-  // mockCheerioChain.filter = sinon.spy(() => mockCheerioChain);
-  // mockCheerioChain.replaceWith = sinon.spy();
-
-  sandbox.stub(cheerio, 'load').returns(mockCheerio);
-  sandbox.stub(files, 'readFile').returns(template);
 
   convert(config);
 
   t.true(files.readFile.calledWith('my-template.html'));
-  t.true(cheerio.load.calledWith(template));
-  t.true(mockCheerio.calledWith('*'));
-  t.is(mockCheerioChain.contents.callCount, 3);
-  t.is(mockCheerioChain.filter.callCount, 3);
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\n# File #1'));
-  t.true(mockCheerioChain.replaceWith.calledWith('HTML\n\n# File Ehhhhh'));
-  t.true(
-    mockCheerioChain.replaceWith.calledWith('HTML\n\n# Sleepy Time\n\nZzz'),
-  );
-  t.true(
-    files.writeFiles.calledWith('output', [
-      {
-        contents: 'CHEERIO! 1',
-        filename: 'file1.html',
-      },
-      {
-        contents: 'CHEERIO! 2',
-        filename: 'fileA.html',
-      },
-      {
-        contents: 'CHEERIO! 3',
-        filename: 'Zzz.html',
-      },
-    ]),
-  );
-
-  const findComment = mockCheerioChain.filter.firstCall.args[0];
-
-  t.true(findComment(0, { type: 'comment', data: 'talc-content   ' }));
-  t.false(findComment(1, { type: 'a', data: 'talc-content' }));
-  t.false(findComment(2, { type: 'comment', data: 'talccontent' }));
 
   sandbox.restore();
 });
 
-// NEED TO PARSE YAML metadata to use as variables
-// variables will be talc:<variable>
-// understood vars: title, date, tags (comma-separated)
+test('should replace variables', (t) => {
+  const template = '<html><body><!-- talc:publish_date --></body></html>';
+  const { sandbox } = setupWithTemplate(template);
+  const config = {
+    dateFormat: 'M/d/yyyy',
+    input: 'input',
+    output: 'output',
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(dates, 'format').callThrough();
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+
+  t.true(dates.format.called);
+  t.deepEqual(compiledTemplates, [
+    '<html><body>8/3/2018</body></html>\n',
+    '<html><body>3/27/2010</body></html>\n',
+    '<html><body>8/13/2002</body></html>\n',
+  ]);
+
+  sandbox.restore();
+});
+
+test('should replace missing variables with a blank', (t) => {
+  const template = '<html><body><!-- talc:unknown --></body></html>';
+  const { sandbox } = setupWithTemplate(template);
+  const config = {
+    dateFormat: 'M/d/yyyy',
+    input: 'input',
+    output: 'output',
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(dates, 'format').callThrough();
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+
+  t.deepEqual(compiledTemplates, [
+    '<html><body>hey yo</body></html>\n',
+    '<html><body></body></html>\n',
+    '<html><body></body></html>\n',
+  ]);
+
+  sandbox.restore();
+});
+
+test('should be able to use nested for loops', (t) => {
+  const template = fixtures.load('loop-template');
+  const compiledTemplate = fixtures.load('compiled-loop-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    dateFormat: 'yyyy-MM-dd',
+    input: 'input',
+    output: 'output',
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(files, 'readFile').returns(template);
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: I Have Tags
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+  ]);
+
+  convert(config);
+
+  t.deepEqual(files.writeFiles.lastCall.args, [
+    'output',
+    [
+      {
+        contents: compiledTemplate,
+        filename: 'i-have-tags.html',
+        metadata: {
+          create_date: '2017-11-13',
+          title: 'I Have Tags',
+          publish_date: '2018-08-03',
+          tags: ['birth', 'ben', 'love'],
+        },
+      },
+    ],
+  ]);
+
+  sandbox.restore();
+});
+
+test('should compile an index template if present in the config', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+  const compiledIndexTemplate = templateLoader('compiled-index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    dateFormat: 'yyyy-MM-dd',
+    index: 'my-index-template.html',
+    input: 'input',
+    output: 'output',
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-index-template.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 3);
+
+  t.is(fileList[2].contents, compiledIndexTemplate);
+
+  sandbox.restore();
+});
