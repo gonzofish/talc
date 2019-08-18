@@ -1,5 +1,7 @@
 # Talc
 
+[![codecov](https://codecov.io/gh/gonzofish/talc/branch/master/graph/badge.svg)](https://codecov.io/gh/gonzofish/talc)
+
 Talc is my experiment to create blog posts from Markdown files and, eventually,
 a static site.
 
