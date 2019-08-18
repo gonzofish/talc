@@ -27,12 +27,11 @@ publish_date: 2010-03-27 16:30:00
 We are family
     `;
   const sandbox = sinon.createSandbox();
-  const getCurrent = sandbox.stub(datesUtil, 'getCurrent');
   const deleteFile = sandbox.stub(filesUtil, 'deleteFile');
   const readFile = sandbox.stub(filesUtil, 'readFile');
   const writeFiles = sandbox.stub(filesUtil, 'writeFiles');
 
-  getCurrent.returns('2010-03-27 16:30:00');
+  sandbox.stub(datesUtil, 'getCurrent').returns('2010-03-27 16:30:00');
   readFile.returns(draftContents);
 
   publish('my-draft', config);
@@ -47,4 +46,41 @@ We are family
     ]),
   );
   t.true(deleteFile.calledOnceWith('drafts/my-draft.md'));
+
+  sandbox.restore();
+});
+
+test('should do nothing if there is no metadata', (t) => {
+  const config = {
+    drafts: 'drafts',
+  };
+  const draftContents = `Some contents`;
+  const sandbox = sinon.createSandbox();
+  const deleteFile = sandbox.stub(filesUtil, 'deleteFile');
+  const writeFiles = sandbox.stub(filesUtil, 'writeFiles');
+
+  sandbox.stub(filesUtil, 'readFile').returns(draftContents);
+
+  publish('draft-file', config);
+
+  t.true(deleteFile.notCalled);
+  t.true(writeFiles.notCalled);
+
+  sandbox.restore();
+});
+
+test('should be able to handle a file argument with an md extension', (t) => {
+  const config = {
+    drafts: 'drafts',
+  };
+  const sandbox = sinon.createSandbox();
+  const readFile = sandbox.stub(filesUtil, 'readFile');
+
+  readFile.returns('');
+
+  publish('pizza.md', config);
+
+  t.true(readFile.calledOnceWith('drafts/pizza.md'));
+
+  sandbox.restore();
 });
