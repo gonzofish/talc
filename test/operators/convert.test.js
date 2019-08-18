@@ -101,7 +101,7 @@ test('should convert a markdown file to HTML via showdown', (t) => {
         contents: 'HTML\n\nZzz',
         filename: 'sleepy-time.html',
         metadata: {
-          created_date: '1984-08-13 02:30:00',
+          create_date: '1984-08-13 02:30:00',
           publish_date: '2002-08-13 00:00:00',
           title: 'Sleepy Time',
         },

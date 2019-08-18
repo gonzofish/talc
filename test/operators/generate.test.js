@@ -15,14 +15,14 @@ test.after(() => {
 
 test('should create a file using the config options', (t) => {
   const config = {
-    input: 'my_posts',
+    drafts: 'my_drafts',
   };
-  const filename = 'my_posts/my-first-post.md';
+  const filename = 'my_drafts/my-first-post.md';
   const sandbox = sinon.createSandbox();
   const writeFile = sandbox.stub(fs, 'writeFileSync');
   const contents = `---
 title: My First Post
-created_date: 2018-08-03 12:34:00
+create_date: 2018-08-03 12:34:00
 ---
 # My First Post
 
@@ -39,7 +39,7 @@ created_date: 2018-08-03 12:34:00
 
 test('should create the input directory if it does not exist', (t) => {
   const config = {
-    input: 'my_posts',
+    drafts: 'my_posts',
   };
   const filename = 'my_posts/my-first-entry.md';
   const sandbox = sinon.createSandbox();
@@ -47,7 +47,7 @@ test('should create the input directory if it does not exist', (t) => {
   const mkdir = sandbox.stub(fs, 'mkdirSync');
   const contents = `---
 title: My First Entry
-created_date: 2018-08-03 12:34:00
+create_date: 2018-08-03 12:34:00
 ---
 # My First Entry
 
