@@ -2,6 +2,7 @@ const test = require('ava').default;
 const sinon = require('sinon');
 
 const operators = require('../lib/operators');
+const loadConfig = require('../lib/utils/config.util');
 const run = require('../lib');
 const config = {
   input: 'posts-md',
@@ -11,7 +12,8 @@ const config = {
 const setup = () => {
   const sandbox = sinon.createSandbox();
 
-  sandbox.stub(operators, 'loadConfig').returns(config);
+  sandbox.mock();
+  sandbox.stub(loadConfig, 'loadConfig').returns(config);
 
   return sandbox;
 };
@@ -56,6 +58,28 @@ test('should alias "build" with "b"', (t) => {
   run('b');
 
   t.true(convert.calledWith(config));
+
+  sandbox.restore();
+});
+
+test('should delegate a "publish" command to the publish operator', (t) => {
+  const sandbox = setup();
+  const publish = sandbox.stub(operators, 'publish');
+
+  run('publish', 'my-file');
+
+  t.true(publish.calledWith('my-file', config));
+
+  sandbox.restore();
+});
+
+test('should alias "publish" with "p"', (t) => {
+  const sandbox = setup();
+  const publish = sandbox.stub(operators, 'publish');
+
+  run('p', 'aliased');
+
+  t.true(publish.calledWith('aliased', config));
 
   sandbox.restore();
 });

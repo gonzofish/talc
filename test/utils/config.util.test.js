@@ -2,7 +2,7 @@ const test = require('ava').default;
 const sinon = require('sinon');
 
 const files = require('../../lib/utils/files.util');
-const load = require('../../lib/operators/config');
+const load = require('../../lib/utils/config.util');
 
 let sandbox = sinon.createSandbox();
 let userConfig;
@@ -18,10 +18,11 @@ test.after(() => {
 
 test('should look for a config file next to the nearest package.json', (t) => {
   userConfig = {
+    built: 'output',
     dateFormat: 'M/d/yyyy',
+    drafts: 'drafts',
     index: 'my-index.html',
-    input: 'posts',
-    output: 'published',
+    published: 'input',
     template: 'my-template.html',
   };
 
@@ -31,24 +32,27 @@ test('should look for a config file next to the nearest package.json', (t) => {
 test('should use a default config if one is not present', (t) => {
   userConfig = undefined;
   t.deepEqual(load(), {
+    built: 'built',
     dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    drafts: 'drafts',
     index: null,
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: null,
   });
 });
 
 test('should use a partial config', (t) => {
   userConfig = {
-    input: 'pizza',
+    drafts: 'unpublished',
+    published: 'pizza',
   };
 
   t.deepEqual(load(), {
+    built: 'built',
     dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    drafts: 'unpublished',
     index: null,
-    input: 'pizza',
-    output: 'output',
+    published: 'pizza',
     template: null,
   });
 });

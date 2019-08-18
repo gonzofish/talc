@@ -24,10 +24,11 @@ understands the following attributes:
 
 | Attribute    | Type     | Purpose                                                                                                        | Default Value           |
 | ------------ | -------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `built`      | `string` | Directory where compiled post will live                                                                        | `"built"`               |
 | `dateFormat` | `string` | The [Luxon date format](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens) to use | `"yyyy-MM-dd HH:mm:ss"` |
+| `drafts`     | `string` | Directory where draft posts live                                                                               | `"drafts"`              |
 | `index`      | `string` | A special template for creating an index of all output files                                                   | `null`                  |
-| `input`      | `string` | Directory where posts that will be published live                                                              | `"input"`               |
-| `output`     | `string` | Directory where published post will live                                                                       | `"output"`              |
+| `published`  | `string` | Directory where posts that will be compiled live                                                               | `"published"`           |
 | `template`   | `string` | The location of an HTML file to place content into                                                             | `null`                  |
 
 ## Generate a New Markdown File
@@ -39,6 +40,23 @@ $> npm run talc new "My New Post"
 # or
 $> npm run talc n "My New Post"
 ```
+
+## Publish a File
+
+Talc will append a `publish_date` and move your file to the `published` directory
+from the `drafts` directory:
+
+```shell
+$> npm run talc publish my-file
+# or
+$> npm run talc p my-file
+```
+
+Notes:
+
+1. If a file has no metadata boundaries (`---`) it'll be silently skipped
+2. If a file has multiple `publish_date` attributes, the last in the list of
+   metadata is the one used
 
 ## Convert to HTML
 

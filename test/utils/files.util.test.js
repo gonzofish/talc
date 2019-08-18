@@ -168,3 +168,31 @@ test('#writeFiles should NOT create the directory if no files have contents', (t
 
   sandbox.restore();
 });
+
+test('#deleteFile should remove the specified filepath', (t) => {
+  const sandbox = sinon.createSandbox();
+  const exists = sandbox.stub(fs, 'existsSync');
+  const unlink = sandbox.stub(fs, 'unlinkSync');
+
+  exists.returns(true);
+  files.deleteFile('this/is/my/file.txt');
+
+  t.true(exists.calledOnceWith('this/is/my/file.txt'));
+  t.true(unlink.calledOnceWith('this/is/my/file.txt'));
+
+  sandbox.restore();
+});
+
+test('#deleteFile should do nothing if the file does not exist', (t) => {
+  const sandbox = sinon.createSandbox();
+  const exists = sandbox.stub(fs, 'existsSync');
+  const unlink = sandbox.stub(fs, 'unlinkSync');
+
+  exists.returns(false);
+  files.deleteFile('this/is-not-a-file.txt');
+
+  t.true(exists.calledOnceWith('this/is-not-a-file.txt'));
+  t.true(unlink.notCalled);
+
+  sandbox.restore();
+});
