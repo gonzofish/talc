@@ -69,17 +69,17 @@ const setup = () => {
 test('should convert a markdown file to HTML via showdown', (t) => {
   const { sandbox } = setup();
   const config = {
+    built: 'built',
     dateFormat: 'YYYY-MM-dd HH:mm:ss',
-    input: 'input',
-    output: 'output',
+    published: 'published',
   };
 
   convert(config);
 
   t.true(showdown.Converter.calledWith({ metadata: true }));
-  t.true(files.readFiles.calledWith('input', 'md'));
+  t.true(files.readFiles.calledWith('published', 'md'));
   t.true(
-    files.writeFiles.calledWith('output', [
+    files.writeFiles.calledWith('built', [
       {
         contents: 'HTML\n\nFirst!!1',
         filename: 'file-1.html',
@@ -116,9 +116,9 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   const template = '<html><body>my template</body></html>';
   const { sandbox } = setupWithTemplate(template);
   const config = {
+    built: 'built',
     dateFormat: 'YYYY-MM-dd HH:mm:ss',
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: 'my-template.html',
   };
 
@@ -133,9 +133,9 @@ test('should replace variables', (t) => {
   const template = '<html><body><!-- talc:publish_date --></body></html>';
   const { sandbox } = setupWithTemplate(template);
   const config = {
+    built: 'built',
     dateFormat: 'M/d/yyyy',
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: 'my-template.html',
   };
 
@@ -160,9 +160,9 @@ test('should replace missing variables with a blank', (t) => {
   const template = '<html><body><!-- talc:unknown --></body></html>';
   const { sandbox } = setupWithTemplate(template);
   const config = {
+    built: 'built',
     dateFormat: 'M/d/yyyy',
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: 'my-template.html',
   };
 
@@ -188,9 +188,9 @@ test('should be able to use nested for loops', (t) => {
 
   const sandbox = sinon.createSandbox();
   const config = {
+    built: 'built',
     dateFormat: 'yyyy-MM-dd',
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: 'my-template.html',
   };
 
@@ -216,7 +216,7 @@ My boy was born today!
   convert(config);
 
   t.deepEqual(files.writeFiles.lastCall.args, [
-    'output',
+    'built',
     [
       {
         contents: compiledTemplate,
@@ -241,10 +241,10 @@ test('should compile an index template if present in the config', (t) => {
 
   const sandbox = sinon.createSandbox();
   const config = {
+    built: 'built',
     dateFormat: 'yyyy-MM-dd',
     index: 'my-index-template.html',
-    input: 'input',
-    output: 'output',
+    published: 'published',
     template: 'my-template.html',
   };
 
