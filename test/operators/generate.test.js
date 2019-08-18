@@ -15,11 +15,10 @@ test.after(() => {
 
 test('should create a file using the config options', (t) => {
   const config = {
-    drafts: 'my_drafts',
+    drafts: 'my-drafts',
   };
-  const filename = 'my_drafts/my-first-post.md';
   const sandbox = sinon.createSandbox();
-  const writeFile = sandbox.stub(filesUtil, 'writeFiles');
+  const writeFiles = sandbox.stub(filesUtil, 'writeFiles');
   const contents = `---
 title: My First Post
 create_date: 2018-08-03 12:34:00
@@ -29,7 +28,14 @@ create_date: 2018-08-03 12:34:00
 
   generate('My First Post', config);
 
-  t.true(writeFile.calledWith(filename, [contents]));
+  t.true(
+    writeFiles.calledWith('my-drafts', [
+      {
+        contents,
+        filename: 'my-first-post.md',
+      },
+    ]),
+  );
 
   sandbox.restore();
 });
