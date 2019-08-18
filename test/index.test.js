@@ -2,6 +2,7 @@ const test = require('ava').default;
 const sinon = require('sinon');
 
 const operators = require('../lib/operators');
+const loadConfig = require('../lib/utils/config.util');
 const run = require('../lib');
 const config = {
   input: 'posts-md',
@@ -11,7 +12,8 @@ const config = {
 const setup = () => {
   const sandbox = sinon.createSandbox();
 
-  sandbox.stub(operators, 'loadConfig').returns(config);
+  sandbox.mock()
+  sandbox.stub(loadConfig, 'loadConfig').returns(config);
 
   return sandbox;
 };

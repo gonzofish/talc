@@ -2,7 +2,7 @@ const test = require('ava').default;
 const sinon = require('sinon');
 
 const files = require('../../lib/utils/files.util');
-const load = require('../../lib/operators/config');
+const load = require('../../lib/utils/config.util');
 
 let sandbox = sinon.createSandbox();
 let userConfig;
