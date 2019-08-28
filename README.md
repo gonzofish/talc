@@ -31,7 +31,7 @@ understands the following attributes:
 | `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
 | `index`      | `string`        | A special template for creating an index of all output files                                                   | `null`                  |
 | `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |
-| `sortBy`     | `Array<string>` | The metadata fields to sort posts by in the index file                                                         | [`publish_date`]        |
+| `sortBy`     | `Array<string>` | The metadata fields to sort posts by in the index file                                                         | [`"publish_date"`]      |
 | `template`   | `string`        | The location of an HTML file to place content into                                                             | `null`                  |
 
 ## Generate a New Markdown File
