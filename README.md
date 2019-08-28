@@ -24,14 +24,15 @@ In your `package.json` add:
 Talc looks for a `talc.config.js` file next to your `package.json`. It
 understands the following attributes:
 
-| Attribute    | Type     | Purpose                                                                                                        | Default Value           |
-| ------------ | -------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `built`      | `string` | Directory where compiled post will live                                                                        | `"built"`               |
-| `dateFormat` | `string` | The [Luxon date format](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens) to use | `"yyyy-MM-dd HH:mm:ss"` |
-| `drafts`     | `string` | Directory where draft posts live                                                                               | `"drafts"`              |
-| `index`      | `string` | A special template for creating an index of all output files                                                   | `null`                  |
-| `published`  | `string` | Directory where posts that will be compiled live                                                               | `"published"`           |
-| `template`   | `string` | The location of an HTML file to place content into                                                             | `null`                  |
+| Attribute    | Type            | Purpose                                                                                                        | Default Value           |
+| ------------ | --------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `built`      | `string`        | Directory where compiled post will live                                                                        | `"built"`               |
+| `dateFormat` | `string`        | The [Luxon date format](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens) to use | `"yyyy-MM-dd HH:mm:ss"` |
+| `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
+| `index`      | `string`        | A special template for creating an index of all output files                                                   | `null`                  |
+| `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |
+| `sortBy`     | `Array<string>` | The metadata fields to sort posts by in the index file                                                         | [`publish_date`]        |
+| `template`   | `string`        | The location of an HTML file to place content into                                                             | `null`                  |
 
 ## Generate a New Markdown File
 
