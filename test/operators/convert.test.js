@@ -70,8 +70,9 @@ test('should convert a markdown file to HTML via showdown', (t) => {
   const { sandbox } = setup();
   const config = {
     built: 'built',
-    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
     published: 'published',
+    sortBy: ['publish_date'],
   };
 
   convert(config);
@@ -117,8 +118,9 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   const { sandbox } = setupWithTemplate(template);
   const config = {
     built: 'built',
-    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
     published: 'published',
+    sortBy: ['publish_date'],
     template: 'my-template.html',
   };
 
@@ -136,6 +138,7 @@ test('should replace variables', (t) => {
     built: 'built',
     dateFormat: 'M/d/yyyy',
     published: 'published',
+    sortBy: ['publish_date'],
     template: 'my-template.html',
   };
 
@@ -163,6 +166,7 @@ test('should replace missing variables with a blank', (t) => {
     built: 'built',
     dateFormat: 'M/d/yyyy',
     published: 'published',
+    sortBy: ['publish_date'],
     template: 'my-template.html',
   };
 
@@ -191,6 +195,7 @@ test('should be able to use nested for loops', (t) => {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
     published: 'published',
+    sortBy: ['publish_date'],
     template: 'my-template.html',
   };
 
@@ -245,6 +250,7 @@ test('should compile an index template if present in the config', (t) => {
     dateFormat: 'yyyy-MM-dd',
     index: 'my-index-template.html',
     published: 'published',
+    sortBy: ['publish_date'],
     template: 'my-template.html',
   };
 
@@ -290,6 +296,78 @@ Sue has no headache...finally...
   t.is(fileList.length, 3);
 
   t.is(fileList[2].contents, compiledIndexTemplate);
+
+  sandbox.restore();
+});
+
+test('should sort index files by the provided sortBy config attribute', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    index: 'my-index-template.html',
+    published: 'published',
+    sortBy: ['title'],
+    template: 'my-template.html',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-index-template.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+    {
+      contents: `---
+title: Life is Good!
+publish_date: 2019-04-01 10:30:00
+---
+
+Finally out of the old house and into the new!
+`,
+      filename: 'perfection.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 4);
+
+  t.is(fileList[0].metadata.title, 'Finally!');
+  t.is(fileList[1].metadata.title, 'He is Here');
+  t.is(fileList[2].metadata.title, 'Life is Good!');
 
   sandbox.restore();
 });
