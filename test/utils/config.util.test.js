@@ -34,7 +34,7 @@ test('should use a default config if one is not present', (t) => {
   userConfig = undefined;
   t.deepEqual(load(), {
     built: 'built',
-    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
     drafts: 'drafts',
     index: null,
     published: 'published',
@@ -51,7 +51,7 @@ test('should use a partial config', (t) => {
 
   t.deepEqual(load(), {
     built: 'built',
-    dateFormat: 'YYYY-MM-dd HH:mm:ss',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
     drafts: 'unpublished',
     index: null,
     published: 'pizza',

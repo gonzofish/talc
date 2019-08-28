@@ -20,3 +20,17 @@ test('#format should take a date string and format it to the provided format', (
 test('#getCurrent should provide current date & time', (t) => {
   t.is(dates.getCurrent(), '2010-03-27 04:30:37');
 });
+
+test('#toLuxon should create a date time from a provided date string', (t) => {
+  const luxonDate = DateTime.local(2018, 8, 3, 8, 1, 0, 0);
+  const result = dates.toLuxon('2018-08-03 08:01:00');
+
+  t.is(result.toMillis(), luxonDate.toMillis());
+});
+
+test('#toLuxon should create a date time from a provided date string using a provided format', (t) => {
+  const luxonDate = DateTime.local(2018, 8, 3, 0, 0, 0, 0);
+  const result = dates.toLuxon('2018-08-03', 'yyyy-MM-dd');
+
+  t.is(result.toMillis(), luxonDate.toMillis());
+});
