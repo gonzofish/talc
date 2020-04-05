@@ -1,6 +1,7 @@
 const test = require('ava').default;
 const sinon = require('sinon');
 
+const path = require('path');
 const showdown = require('showdown');
 
 const convert = require('../../lib/operators/convert');
@@ -71,8 +72,8 @@ test('should convert a markdown file to HTML via showdown', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'yyyy-MM-dd HH:mm:ss',
+    pages: { templates: [] },
     published: 'published',
-    sortBy: ['publish_date'],
   };
 
   convert(config);
@@ -119,14 +120,47 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'yyyy-MM-dd HH:mm:ss',
+    pages: {
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   convert(config);
 
   t.true(files.readFile.calledWith('my-template.html'));
+
+  sandbox.restore();
+});
+
+test('should use the `directory` provided for pages', (t) => {
+  const template = '<html><body>my template</body></html>';
+  const { sandbox } = setupWithTemplate(template);
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
+    pages: {
+      directory: 'my-directory',
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  convert(config);
+
+  t.true(
+    files.readFile.calledWith('my-directory' + path.sep + 'my-template.html'),
+  );
 
   sandbox.restore();
 });
@@ -137,9 +171,15 @@ test('should replace variables', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(dates, 'format').callThrough();
@@ -165,9 +205,15 @@ test('should replace missing variables with a blank', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(dates, 'format').callThrough();
@@ -194,9 +240,15 @@ test('should be able to use nested for loops', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(files, 'readFile').returns(template);
@@ -239,7 +291,7 @@ My boy was born today!
   sandbox.restore();
 });
 
-test('should compile an index template if present in the config', (t) => {
+test('should compile an listing template if present in the config', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
   const compiledIndexTemplate = templateLoader('compiled-index-template');
@@ -249,9 +301,21 @@ test('should compile an index template if present in the config', (t) => {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
     index: 'my-index-template.html',
+    pages: {
+      templates: [
+        {
+          filename: 'index.html',
+          template: 'my-index-template.html',
+          sortBy: ['publish_date'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(files, 'readFile').callsFake((filename) => {
@@ -300,7 +364,7 @@ Sue has no headache...finally...
   sandbox.restore();
 });
 
-test('should sort index files by the provided sortBy config attribute', (t) => {
+test('should sort files for a listing by a provided sortBy attribute', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
 
@@ -308,10 +372,20 @@ test('should sort index files by the provided sortBy config attribute', (t) => {
   const config = {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
-    index: 'my-index-template.html',
+    pages: {
+      templates: [
+        {
+          template: 'my-index-template.html',
+          sortBy: ['title'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['title'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(files, 'readFile').callsFake((filename) => {
@@ -365,9 +439,229 @@ Finally out of the old house and into the new!
 
   t.is(fileList.length, 4);
 
-  t.is(fileList[0].metadata.title, 'Finally!');
-  t.is(fileList[1].metadata.title, 'He is Here');
-  t.is(fileList[2].metadata.title, 'Life is Good!');
+  // hate having logic like this in tests
+  const titles = fileList[3].contents
+    // find all of the `<strong />` tags in the index output
+    .match(/<strong>[^<]+<\/strong>/g)
+    // extract the contents from each `<strong />` tag
+    .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  t.is(titles[0], 'Finally!');
+  t.is(titles[1], 'He is Here');
+  t.is(titles[2], 'Life is Good!');
+
+  sandbox.restore();
+});
+
+test('should allow files to be transformed for a listing template', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          sortBy: ['title'],
+          template: 'my-index-template.html',
+          transformer: (files) => {
+            const loveFiles = files.filter(
+              ({ tags }) => tags && tags.includes('love'),
+            );
+            const taglessFiles = files.filter(
+              ({ tags }) => !tags || tags.length === 0,
+            );
+
+            return [
+              {
+                filename: 'love.html',
+                files: loveFiles,
+              },
+              {
+                filename: 'tagless.html',
+                files: taglessFiles,
+              },
+            ];
+          },
+          type: 'listing',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-index-template.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+    {
+      contents: `---
+title: Life is Good!
+publish_date: 2019-04-01 10:30:00
+tags: love
+---
+
+Finally out of the old house and into the new!
+`,
+      filename: 'perfection.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 5);
+  t.is(fileList[3].filename, 'love.html');
+  t.is(fileList[4].filename, 'tagless.html');
+
+  // hate having logic like this in tests
+  const getTitles = (index) =>
+    fileList[index].contents
+      // find all of the `<strong />` tags in the index output
+      .match(/<strong>[^<]+<\/strong>/g)
+      // extract the contents from each `<strong />` tag
+      .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  const loveTitles = getTitles(3);
+
+  t.is(loveTitles.length, 2);
+  t.is(loveTitles[0], 'He is Here');
+  t.is(loveTitles[1], 'Life is Good!');
+
+  const taglessTitles = getTitles(4);
+
+  t.is(taglessTitles.length, 1);
+  t.is(taglessTitles[0], 'Finally!');
+
+  sandbox.restore();
+});
+
+test('should enumerate output files with the same output name if no `filename` is provided', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          template: 'index.html',
+          sortBy: ['title'],
+          type: 'listing',
+        },
+        {
+          template: 'index.html',
+          type: 'listing',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'index.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+    {
+      contents: `---
+title: Life is Good!
+publish_date: 2019-04-01 10:30:00
+---
+
+Finally out of the old house and into the new!
+`,
+      filename: 'perfection.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 5);
+  t.is(fileList[3].filename, 'index.1.html');
+  t.is(fileList[4].filename, 'index.2.html');
+
+  // hate having logic like this in tests
+  const getTitles = (index) =>
+    fileList[index].contents
+      // find all of the `<strong />` tags in the index output
+      .match(/<strong>[^<]+<\/strong>/g)
+      // extract the contents from each `<strong />` tag
+      .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  const alphaTitles = getTitles(3);
+
+  t.is(alphaTitles[0], 'Finally!');
+  t.is(alphaTitles[1], 'He is Here');
+  t.is(alphaTitles[2], 'Life is Good!');
+
+  const publishedTitles = getTitles(3);
+
+  t.is(publishedTitles[0], 'Finally!');
+  t.is(publishedTitles[1], 'He is Here');
+  t.is(publishedTitles[2], 'Life is Good!');
 
   sandbox.restore();
 });
