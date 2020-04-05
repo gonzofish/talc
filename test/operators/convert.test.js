@@ -1,6 +1,7 @@
 const test = require('ava').default;
 const sinon = require('sinon');
 
+const path = require('path');
 const showdown = require('showdown');
 
 const convert = require('../../lib/operators/convert');
@@ -133,6 +134,33 @@ test('should insert HTML contents into a template, if one exists', (t) => {
   convert(config);
 
   t.true(files.readFile.calledWith('my-template.html'));
+
+  sandbox.restore();
+});
+
+test('should use the `directory` provided for pages', (t) => {
+  const template = '<html><body>my template</body></html>';
+  const { sandbox } = setupWithTemplate(template);
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd HH:mm:ss',
+    pages: {
+      directory: 'my-directory',
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  convert(config);
+
+  t.true(
+    files.readFile.calledWith('my-directory' + path.sep + 'my-template.html'),
+  );
 
   sandbox.restore();
 });
