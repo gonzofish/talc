@@ -145,7 +145,7 @@ test('should throw an error if a `pages` template is missing a `file` attribute'
   );
 });
 
-test("should throw an error if a `pages` template's `sortBy` attribue is NOT an array", (t) => {
+test("should throw an error if a `pages` template's `sortBy` attribute is NOT an array", (t) => {
   userConfig = {
     pages: {
       templates: [
@@ -160,6 +160,25 @@ test("should throw an error if a `pages` template's `sortBy` attribue is NOT an 
   const error = t.throws(() => load(), { instanceOf: TypeError });
   t.is(
     error.message,
-    'The `sortBy` attribute of a `templates` item in the `pages` configuration attribute must be an Array of Strings',
+    'The `sortBy` attribute of a `templates` item in the `pages` configuration attribute must be an array of strings',
+  );
+});
+
+test("should throw an error if a `pages` template's `sortBy` attribute is NOT an array of strings", (t) => {
+  userConfig = {
+    pages: {
+      templates: [
+        {
+          sortBy: [123],
+          template: 'good.html',
+        },
+      ],
+    },
+  };
+
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
+    'The `sortBy` attribute of a `templates` item in the `pages` configuration attribute must be an array of strings',
   );
 });
