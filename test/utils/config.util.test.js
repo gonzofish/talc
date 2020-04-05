@@ -21,10 +21,21 @@ test('should look for a config file next to the nearest package.json', (t) => {
     built: 'output',
     dateFormat: 'M/d/yyyy',
     drafts: 'drafts',
-    index: 'my-index.html',
+    pages: {
+      directory: 'talc',
+      templates: [
+        {
+          template: 'my-index.html',
+          type: 'listing',
+        },
+        {
+          template: 'my-post.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'input',
     sortBy: ['title'],
-    template: 'my-template.html',
   };
 
   t.deepEqual(load(), userConfig);
@@ -36,10 +47,11 @@ test('should use a default config if one is not present', (t) => {
     built: 'built',
     dateFormat: 'yyyy-MM-dd HH:mm:ss',
     drafts: 'drafts',
-    index: null,
+    pages: {
+      templates: [],
+    },
     published: 'published',
     sortBy: ['publish_date'],
-    template: null,
   });
 });
 
@@ -53,10 +65,11 @@ test('should use a partial config', (t) => {
     built: 'built',
     dateFormat: 'yyyy-MM-dd HH:mm:ss',
     drafts: 'unpublished',
-    index: null,
+    pages: {
+      templates: [],
+    },
     published: 'pizza',
     sortBy: ['publish_date'],
-    template: null,
   });
 });
 
@@ -69,6 +82,30 @@ test('should throw an error if the `dateFormat` value is not a valid Luxon forma
     () => load(),
     Error,
     'The `dateFormat` configuration attribute must be a valid Luxon format',
+  );
+});
+
+test('should throw an error if `pages` is not an object', (t) => {
+  userConfig = {
+    pages: () => {},
+  };
+
+  t.throws(
+    () => load(),
+    Error,
+    'The `pages` configuration attribute must be an object',
+  );
+});
+
+test('should throw an error if `pages` does not have a `templates` array', (t) => {
+  userConfig = {
+    pages: {},
+  };
+
+  t.throws(
+    () => load(),
+    Error,
+    'The `pages` configuration attribute must have a `templates` array',
   );
 });
 
