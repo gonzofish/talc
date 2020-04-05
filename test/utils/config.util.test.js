@@ -91,6 +91,20 @@ test('should throw an error if `pages` is not an object', (t) => {
   t.is(error.message, 'The `pages` configuration attribute must be an object');
 });
 
+test('should throw an error if a provided `pages.directory` is not a string', (t) => {
+  userConfig = {
+    pages: {
+      directory: 123,
+      templates: [],
+    },
+  };
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
+    'The `directory` attribute of the `pages` configuration attribute must be a string',
+  );
+});
+
 test('should throw an error if `pages` does not have a `templates` array', (t) => {
   userConfig = {
     pages: {},
