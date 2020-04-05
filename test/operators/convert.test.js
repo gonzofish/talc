@@ -263,7 +263,7 @@ My boy was born today!
   sandbox.restore();
 });
 
-test('should compile an index template if present in the config', (t) => {
+test('should compile an listing template if present in the config', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
   const compiledIndexTemplate = templateLoader('compiled-index-template');
@@ -336,7 +336,7 @@ Sue has no headache...finally...
   sandbox.restore();
 });
 
-test('should sort index files by the provided sortBy config attribute', (t) => {
+test('should sort files for a listing by a provided sortBy attribute', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
 
@@ -425,7 +425,7 @@ Finally out of the old house and into the new!
   sandbox.restore();
 });
 
-test('should allow listing metadata to be transformed', (t) => {
+test('should allow files to be transformed for a listing template', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
 
