@@ -263,7 +263,7 @@ My boy was born today!
   sandbox.restore();
 });
 
-test.skip('should compile an index template if present in the config', (t) => {
+test('should compile an index template if present in the config', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
   const compiledIndexTemplate = templateLoader('compiled-index-template');
@@ -273,9 +273,21 @@ test.skip('should compile an index template if present in the config', (t) => {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
     index: 'my-index-template.html',
+    pages: {
+      templates: [
+        {
+          filename: 'index.html',
+          template: 'my-index-template.html',
+          sortBy: ['publish_date'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['publish_date'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(files, 'readFile').callsFake((filename) => {
@@ -324,7 +336,7 @@ Sue has no headache...finally...
   sandbox.restore();
 });
 
-test.skip('should sort index files by the provided sortBy config attribute', (t) => {
+test('should sort index files by the provided sortBy config attribute', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
 
@@ -332,10 +344,21 @@ test.skip('should sort index files by the provided sortBy config attribute', (t)
   const config = {
     built: 'built',
     dateFormat: 'yyyy-MM-dd',
-    index: 'my-index-template.html',
+    pages: {
+      templates: [
+        {
+          filename: 'index.html',
+          template: 'my-index-template.html',
+          sortBy: ['title'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
     published: 'published',
-    sortBy: ['title'],
-    template: 'my-template.html',
   };
 
   sandbox.stub(files, 'readFile').callsFake((filename) => {
@@ -389,9 +412,16 @@ Finally out of the old house and into the new!
 
   t.is(fileList.length, 4);
 
-  t.is(fileList[0].metadata.title, 'Finally!');
-  t.is(fileList[1].metadata.title, 'He is Here');
-  t.is(fileList[2].metadata.title, 'Life is Good!');
+  // hate having logic like this in tests
+  const titles = fileList[3].contents
+    // find all of the `<strong />` tags in the index output
+    .match(/<strong>[^<]+<\/strong>/g)
+    // extract the contents from each `<strong />` tag
+    .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  t.is(titles[0], 'Finally!');
+  t.is(titles[1], 'He is Here');
+  t.is(titles[2], 'Life is Good!');
 
   sandbox.restore();
 });
