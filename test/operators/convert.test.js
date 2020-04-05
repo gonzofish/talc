@@ -518,6 +518,7 @@ Finally out of the old house and into the new!
   t.is(fileList[3].filename, 'love.html');
   t.is(fileList[4].filename, 'tagless.html');
 
+  // hate having logic like this in tests
   const getTitles = (index) =>
     fileList[index].contents
       // find all of the `<strong />` tags in the index output
@@ -525,7 +526,6 @@ Finally out of the old house and into the new!
       // extract the contents from each `<strong />` tag
       .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
 
-  // hate having logic like this in tests
   const loveTitles = getTitles(3);
 
   t.is(loveTitles.length, 2);
@@ -536,6 +536,104 @@ Finally out of the old house and into the new!
 
   t.is(taglessTitles.length, 1);
   t.is(taglessTitles[0], 'Finally!');
+
+  sandbox.restore();
+});
+
+test('should enumerate output files with the same output name if no `filename` is provided', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          template: 'index.html',
+          sortBy: ['title'],
+          type: 'listing',
+        },
+        {
+          template: 'index.html',
+          type: 'listing',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'index.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+    {
+      contents: `---
+title: Life is Good!
+publish_date: 2019-04-01 10:30:00
+---
+
+Finally out of the old house and into the new!
+`,
+      filename: 'perfection.md',
+    },
+  ]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 5);
+  t.is(fileList[3].filename, 'index.1.html');
+  t.is(fileList[4].filename, 'index.2.html');
+
+  // hate having logic like this in tests
+  const getTitles = (index) =>
+    fileList[index].contents
+      // find all of the `<strong />` tags in the index output
+      .match(/<strong>[^<]+<\/strong>/g)
+      // extract the contents from each `<strong />` tag
+      .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  const alphaTitles = getTitles(3);
+
+  t.is(alphaTitles[0], 'Finally!');
+  t.is(alphaTitles[1], 'He is Here');
+  t.is(alphaTitles[2], 'Life is Good!');
+
+  const publishedTitles = getTitles(3);
+
+  t.is(publishedTitles[0], 'Finally!');
+  t.is(publishedTitles[1], 'He is Here');
+  t.is(publishedTitles[2], 'Life is Good!');
 
   sandbox.restore();
 });
