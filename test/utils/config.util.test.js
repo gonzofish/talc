@@ -35,7 +35,6 @@ test('should look for a config file next to the nearest package.json', (t) => {
       ],
     },
     published: 'input',
-    sortBy: ['title'],
   };
 
   t.deepEqual(load(), userConfig);
@@ -51,7 +50,6 @@ test('should use a default config if one is not present', (t) => {
       templates: [],
     },
     published: 'published',
-    sortBy: ['publish_date'],
   });
 });
 
@@ -69,7 +67,6 @@ test('should use a partial config', (t) => {
       templates: [],
     },
     published: 'pizza',
-    sortBy: ['publish_date'],
   });
 });
 
@@ -78,9 +75,9 @@ test('should throw an error if the `dateFormat` value is not a valid Luxon forma
     dateFormat: '!@@##',
   };
 
-  t.throws(
-    () => load(),
-    Error,
+  const error = t.throws(() => load(), { instanceOf: Error });
+  t.is(
+    error.message,
     'The `dateFormat` configuration attribute must be a valid Luxon format',
   );
 });
@@ -90,11 +87,8 @@ test('should throw an error if `pages` is not an object', (t) => {
     pages: () => {},
   };
 
-  t.throws(
-    () => load(),
-    Error,
-    'The `pages` configuration attribute must be an object',
-  );
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(error.message, 'The `pages` configuration attribute must be an object');
 });
 
 test('should throw an error if `pages` does not have a `templates` array', (t) => {
@@ -102,21 +96,56 @@ test('should throw an error if `pages` does not have a `templates` array', (t) =
     pages: {},
   };
 
-  t.throws(
-    () => load(),
-    Error,
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
     'The `pages` configuration attribute must have a `templates` array',
   );
 });
 
-test('should throw an error if the `sortBy` value is NOT an array', (t) => {
+test('should throw an error if a `pages` template is not an object', (t) => {
   userConfig = {
-    sortBy: 'banana',
+    pages: {
+      templates: [123],
+    },
   };
 
-  t.throws(
-    () => load(),
-    TypeError,
-    'The `sortBy` configuration attribute must be an Array of Strings',
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
+    'Each item in the `templates` array of the `pages` configuration attribute must be an object',
+  );
+});
+
+test('should throw an error if a `pages` template is missing a `file` attribute', (t) => {
+  userConfig = {
+    pages: {
+      templates: [{ file: '123' }, {}],
+    },
+  };
+
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
+    'Each item in the `templates` array of the `pages` configuration attribute must have a `template` attribute',
+  );
+});
+
+test("should throw an error if a `pages` template's `sortBy` attribue is NOT an array", (t) => {
+  userConfig = {
+    pages: {
+      templates: [
+        {
+          sortBy: 'banana',
+          template: 'good.html',
+        },
+      ],
+    },
+  };
+
+  const error = t.throws(() => load(), { instanceOf: TypeError });
+  t.is(
+    error.message,
+    'The `sortBy` attribute of a `templates` item in the `pages` configuration attribute must be an Array of Strings',
   );
 });
