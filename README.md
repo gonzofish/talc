@@ -29,10 +29,56 @@ understands the following attributes:
 | `built`      | `string`        | Directory where compiled post will live                                                                        | `"built"`               |
 | `dateFormat` | `string`        | The [Luxon date format](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens) to use | `"yyyy-MM-dd HH:mm:ss"` |
 | `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
-| `index`      | `string`        | A special template for creating an index of all output files                                                   | `null`                  |
+| `pages`      | `Pages`         | The different pages to render and (optionally) the directory where they live                                   | `{ templates: [] }`     |
 | `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |
-| `sortBy`     | `Array<string>` | The metadata fields to sort posts by in the index file                                                         | [`"publish_date"`]      |
-| `template`   | `string`        | The location of an HTML file to place content into                                                             | `null`                  |
+
+### The Pages Config
+
+The pages that will be created rely on templates which can be provided by the `pages` attribute of `talc.config.js`. There are two attributes:
+
+|Attribute|Type|Purpose|Default Value|
+|---|---|---|---|
+|`directory`|`string`|The directory where the templates live|`undefined`|
+|`templates`|`Array<Template>`|The list of templates to create|`[]`|
+
+Each `Template` can have the following attributes:
+
+|Attribute|Type|Purpose|Default Value|
+|---|---|---|---|
+|`sortBy`|`Array<string>`|A list of metadata variables to sort by; only applies to `"listing"` templates|`["publish_date"]`|
+|`template`|`string`|The filename of the source template|N/A; _required_|
+|`transformer`|`Function`|A way of pre-processing a template; only applies to `"listing"` templates|`(files, template) => [{ filename: template.filename, files }]`|
+|`type`|`"listing"\|"post"`|The filename of the source template|`"post"`|
+
+#### Transformers
+
+> More than meets the eye!
+
+A transformer allows the processing of a template to add metadata or even return multiple templates.
+
+The function signature for a transformer is:
+
+```typescript
+(files: Array<File>, template: Template) => Array<TransformedFile>
+```
+
+The input parameters are:
+
+|Attribute|Type|Purpose|
+|---|---|---|
+|`files`|`Array<File>`|The list of process `"post"` files|
+|`template`|`Template`|The original template|
+
+Each `File` will contain the file's filename and any metadata coming from the original markdown file.
+
+A `TransformedFile` can have the following attributes:
+
+|Attribute|Type|Purpose|Required?|
+|---|---|---|---|
+|`filename`|`string`|A new filename to use for the derived file||
+|`files`|`Array<File>`|The files to use when processing the template|:+1:|
+|`metadata`|`Object`|Any additional metadata to use on the template||
+|`template`|`string`|An alternative template to use||
 
 ## Generate a New Markdown File
 
@@ -162,11 +208,11 @@ be recognized if placed in metadata.
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------- |
 | `content`      | This outputs any text content; if in a loop it'll output the value at the current index                                                         |           | :+1:      |
 | `create_date`  | Specify the date the content was created; Talc will use the `dateFormat` config attribute to format the output of this attribute                |
-| `files`        | Only available to an `index` template, this provides an array of file metadata including the `filename` and any data for that file              |           | :+1:      |
+| `files`        | Only available to a `"listing"` template, this provides an array of file metadata including the `filename` and any data for that file              |           | :+1:      |
 | `publish_date` | Specify the date the content moves to a published state; Talc will use the `dateFormat` config attribute to format the output of this attribute | :+1:      |
 | `title`        | The title of the content                                                                                                                        | :+1:      |
 
-## Loops & Index Templates
+## Loops & Listing Templates
 
 As the example above shows, Talc supports the use of a very simple `for`/`endfor` looping construct. The basic syntax is:
 
@@ -180,10 +226,10 @@ The metadata of a markdown file only supports very simple lists, so any metadata
 array should use `<!-- talc:content -->` to output the value at each index of
 that array.
 
-For the special variable `files` (which is only available to an `index`
+For the special variable `files` (which is only available to a `"listing"`
 template), Talc will provide all of the metadata and `filename` for each file
 in the array. Those metadata & `filename` can be used as output just by
-referencing their variable name. So to output a list of all filenames and their publish dates, you could write an index template like:
+referencing their variable name. So to output a list of all filenames and their publish dates, you could write an `"listing"` template like:
 
 ```html
 <ul>
