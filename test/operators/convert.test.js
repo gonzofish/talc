@@ -665,3 +665,110 @@ Finally out of the old house and into the new!
 
   sandbox.restore();
 });
+
+test('should let a transformer provide its own template', (t) => {
+  const derivedTemplate = '<html><body>Custom template</body></html>';
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          sortBy: ['title'],
+          template: 'my-index-template.html',
+          transformer: (files) => {
+            const loveFiles = files.filter(
+              ({ tags }) => tags && tags.includes('love'),
+            );
+
+            return [
+              {
+                filename: 'love.html',
+                files: loveFiles,
+                template: 'my-derived-template.html',
+              },
+            ];
+          },
+          type: 'listing',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-index-template.html') {
+      return '<html></html>';
+    } else if (filename === 'my-derived-template.html') {
+      return derivedTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 1);
+
+  t.is(fileList[0].contents, `${derivedTemplate}\n`);
+
+  sandbox.restore();
+});
+
+test('should let a transformer provide extra metadata', (t) => {
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          sortBy: ['title'],
+          template: 'my-index-template.html',
+
+          transformer: (files) => {
+            const loveFiles = files.filter(
+              ({ tags }) => tags && tags.includes('love'),
+            );
+
+            return [
+              {
+                filename: 'love.html',
+                files: loveFiles,
+                metadata: {
+                  custom: 'value',
+                },
+              },
+            ];
+          },
+          type: 'listing',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-index-template.html') {
+      return '<html><body><!-- talc:custom --></body></html>';
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'writeFiles');
+
+  files.readFiles.returns([]);
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList[0].contents, '<html><body>value</body></html>\n');
+
+  sandbox.restore();
+});
