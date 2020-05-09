@@ -39,6 +39,7 @@ The pages that will be created rely on templates which can be provided by the `p
 |Attribute|Type|Purpose|Default Value|
 |---|---|---|---|
 |`directory`|`string`|The directory where the templates live|`undefined`|
+|`partials`|`string`|The directory where partial templates live|`undefined`|
 |`templates`|`Array<Template>`|The list of templates to create|`[]`|
 
 Each `Template` can have the following attributes:
@@ -121,7 +122,7 @@ $> npm run talc b
 ## Using a Template File
 
 In order to place content into a template, create any HTML document and, where
-the content should go put a comment with `talc-content` in it:
+the content should go put a comment with `talc:content` in it:
 
 ```html
 <html>
@@ -131,11 +132,61 @@ the content should go put a comment with `talc-content` in it:
 
   <body>
     <div class="content">
-      <!-- talc-content -->
+      <!-- talc:content -->
     </div>
   </body>
 </html>
 ```
+
+### Template Partials
+
+Sometimes we have HTML that we use over and over again. For instance, the
+header of your page might be the same text on every page. Instead of adding
+that HTML to every template, you can leverage template partials to make
+reusable code.
+
+You could break up your reusable content into separate, reusable partials:
+
+```html
+<!-- templates/header.html -->
+<html>
+  <head>
+    <title>My Template</title>
+
+    <link rel="stylesheet" href="styles/my-styles.css">
+  </head>
+
+  <body>
+    <header>
+      <h1>My Awesome Page!</h1>
+    </header>
+
+    <div class="content">
+```
+
+```html
+<!-- templates/footer.html -->
+    </div>
+
+    <footer>
+      (C) 1981, Awesome Page Inc.
+    </footer>
+  </body>
+</html>
+```
+
+And then, in your actual content templates, reference those templates, by using
+`talc:import:<template>`, to have them compiled when publishing:
+
+```html
+<!-- templates/post.html -->
+<!-- talc:import:header.html -->
+<!-- talc:content -->
+<!-- talc:import:footer.html -->
+```
+
+Combining templates, partials, and variables (see below) allows minimal code
+while allowing for multiple page formats.
 
 ## Metadata & Variables
 
@@ -261,3 +312,4 @@ If you had a `tags` metadata on some (or all) of your posts that you wanted to o
   <!-- talc:endfor -->
 </ul>
 ```
+
