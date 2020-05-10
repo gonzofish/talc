@@ -772,3 +772,42 @@ test('should let a transformer provide extra metadata', (t) => {
 
   sandbox.restore();
 });
+
+test('should let templates to import other templates', (t) => {
+  const partial = 'Date: <!-- talc:publish_date -->';
+  const template =
+    '<html><body><!-- talc:import:partial.html --> is a date</body></html>';
+  const config = {
+    built: 'built',
+    dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+  const { sandbox } = setup();
+
+  sandbox.stub(files, 'readFile').callsFake((filepath) => {
+    if (filepath === 'my-template.html') {
+      return template;
+    } else if (filepath === 'partial.html') {
+      return partial;
+    }
+  });
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+
+  t.deepEqual(compiledTemplates, [
+    '<html><body>Date: 8/3/2018 is a date</body></html>\n',
+    '<html><body>Date: 3/27/2010 is a date</body></html>\n',
+    '<html><body>Date: 8/13/2002 is a date</body></html>\n',
+  ]);
+});
