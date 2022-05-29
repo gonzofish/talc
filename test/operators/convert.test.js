@@ -569,7 +569,6 @@ Finally out of the old house and into the new!
 });
 
 test('should enumerate output files with the same output name if no `filename` is provided', (t) => {
-  const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
 
   const sandbox = sinon.createSandbox();

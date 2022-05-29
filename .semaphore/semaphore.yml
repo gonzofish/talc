@@ -19,6 +19,19 @@ blocks:
             - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
             - npm install
             - cache store node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json) node_modules
+  - name: Lint
+    task:
+      prologue:
+        commands:
+          - checkout
+          - nvm use
+          - node --version
+          - npm --version
+      jobs:
+        - name: Lint code
+          commands:
+            - cache restore node-modules-$SEMAPHORE_GIT_BRANCH-$(checksum package-lock.json),node-modules-$SEMAPHORE_GIT_BRANCH,node-modules-master
+            - npm run lint
   - name: Tests
     task:
       secrets:

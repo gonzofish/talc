@@ -1,5 +1,4 @@
 const test = require('ava').default;
-const fs = require('fs');
 const sinon = require('sinon');
 
 const publish = require('../../lib/operators/publish');
