@@ -27,7 +27,7 @@ understands the following attributes:
 | Attribute    | Type            | Purpose                                                                                                        | Default Value           |
 | ------------ | --------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | `built`      | `string`        | Directory where compiled post will live                                                                        | `"built"`               |
-| `dateFormat` | `string`        | The [Luxon date format](https://github.com/moment/luxon/blob/master/docs/formatting.md#table-of-tokens) to use | `"yyyy-MM-dd HH:mm:ss"` |
+| `dateFormat` | `string`        | The [date-fns formats](https://date-fns.org/docs/format) to use | `"yyyy-MM-dd HH:mm:ss"` |
 | `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
 | `pages`      | `Pages`         | The different pages to render and (optionally) the directory where they live                                   | `{ templates: [] }`     |
 | `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |

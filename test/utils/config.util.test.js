@@ -70,7 +70,7 @@ test('should use a partial config', (t) => {
   });
 });
 
-test('should throw an error if the `dateFormat` value is not a valid Luxon format', (t) => {
+test('should throw an error if the `dateFormat` value is not a valid date format', (t) => {
   userConfig = {
     dateFormat: '!@@##',
   };
@@ -78,7 +78,8 @@ test('should throw an error if the `dateFormat` value is not a valid Luxon forma
   const error = t.throws(() => load(), { instanceOf: Error });
   t.is(
     error.message,
-    'The `dateFormat` configuration attribute must be a valid Luxon format',
+    'The `dateFormat` configuration attribute must be a valid date format.\n' +
+    'Please see https://date-fns.org/docs/format for more information'
   );
 });
 

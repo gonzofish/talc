@@ -24,10 +24,10 @@ test.only('#getCurrent should provide current date & time', (t) => {
 });
 
 test('#convertToDate should create a date time from a provided date string', (t) => {
-  const luxonDate = new Date('2018-08-13 08:01:00');
+  const date = new Date('2018-08-13 08:01:00');
   const result = dates.convertToDate('2018-08-03 08:01:00');
 
-  t.is(result.valueOf(), luxonDate.valueOf());
+  t.is(result.valueOf(), date.valueOf());
 });
 
 test('#convertToDate should create a date time from a provided date string using a provided format', (t) => {
