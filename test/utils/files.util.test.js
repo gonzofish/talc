@@ -14,7 +14,9 @@ const setupReadFiles = () => {
     'myfake/path/pizza.md': '# A Markdown Header',
   };
 
-  sandbox.stub(fs, 'existsSync').returns(true);
+  sandbox.stub(fs, 'existsSync').callsFake((filepath) => (
+    !!fakeFiles[filepath]
+  ));
   sandbox
     .stub(fs, 'readdirSync')
     .returns(['alpha.txt', 'bravo.txt', 'pizza.md']);
@@ -28,6 +30,13 @@ const setupReadFiles = () => {
 
   return sandbox;
 };
+
+test('#ensureExt should add the provided extension if it is not already on the filename', (t) => {
+  t.true(files.ensureExt('pizza-party', 'js') === 'pizza-party.js');
+  t.true(files.ensureExt('pizza-party', '.js') === 'pizza-party.js');
+  t.true(files.ensureExt('pizza-party.js', 'js') === 'pizza-party.js');
+  t.true(files.ensureExt('pizza-party.md', 'js') === 'pizza-party.md.js');
+});
 
 test('#findRoot should find the nearest directory with a package.json', (t) => {
   const projRoot = process.cwd();
@@ -43,6 +52,10 @@ test('#findRoot should find the nearest directory with a package.json', (t) => {
 
 test('#findRoot should just return undefined if it reaches the system root', (t) => {
   t.is(files.findRoot('/'), undefined);
+});
+
+test('#readFile should return undefined if a file does not exist', (t) => {
+  t.is(files.readFile('myfake/path/fakefile.md'), undefined);
 });
 
 test('#readFiles should return the files listed in a specified directory', (t) => {
@@ -195,4 +208,76 @@ test('#deleteFile should do nothing if the file does not exist', (t) => {
   t.true(unlink.notCalled);
 
   sandbox.restore();
+});
+
+test('#updateMetadata should add updates as metadata to the front of the content', (t) => {
+  const content = `# Header
+
+Here is some text!
+
+* Item 1
+* Item 2
+* Item 3`;
+  const withHeader = `---
+alpha: 1
+beta: banana
+gamma: false
+---
+${content}`;
+  const updates = {
+    alpha: 1,
+    beta: 'banana',
+    gamma: false,
+  };
+
+  t.is(files.updateMetadata(content, updates), withHeader);
+});
+
+test('#updateMetadata should not add a metadata section if there are no updates', (t) => {
+  const content = `# Header
+
+Here is some text!
+
+* Item 1
+* Item 2
+* Item 3`;
+  const updates = {
+    alpha: '',
+    beta: '     ',
+  };
+
+  t.is(files.updateMetadata(content, updates), content);
+});
+
+test('#updateMetadata should overwrite previous metadata with updates', (t) => {
+  const content = `# Header
+
+Here is some text!
+
+* Item 1
+* Item 2
+* Item 3`;
+  const original = `---
+alpha: 1
+beta: banana
+gamma: false
+delta: apple
+---
+${content}`;
+  const updated = `---
+alpha: 2
+beta: banana
+gamma: true
+delta: apple
+zeta: apple
+---
+${content}`;
+  const updates = {
+    alpha: 2,
+    beta: 'banana',
+    gamma: true,
+    zeta: 'apple',
+  };
+
+  t.is(files.updateMetadata(original, updates), updated);
 });

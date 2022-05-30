@@ -27,10 +27,11 @@ understands the following attributes:
 | Attribute    | Type            | Purpose                                                                                                        | Default Value           |
 | ------------ | --------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | `built`      | `string`        | Directory where compiled post will live                                                                        | `"built"`               |
-| `dateFormat` | `string`        | The [date-fns formats](https://date-fns.org/docs/format) to use | `"yyyy-MM-dd HH:mm:ss"` |
+| `dateFormat` | `string`        | The [date-fns formats](https://date-fns.org/docs/format) to use                                                | `"yyyy-MM-dd HH:mm:ss"` |
 | `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
 | `pages`      | `Pages`         | The different pages to render and (optionally) the directory where they live                                   | `{ templates: [] }`     |
 | `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |
+| `updating`   | `string`        | Directory where updating posts should reside                                                                   | `"updating"`            |
 
 ### The Pages Config
 
@@ -101,6 +102,19 @@ $> npm run talc publish my-file
 # or
 $> npm run talc p my-file
 ```
+
+## Update a Published File
+
+Talc will keep a published file around while you want to update it by putting a copy in `updating`. When you're done, it will append an `update_date` to the file's metadata and overwrite the previous version in `published`. This means there is a two-step process for updating.
+
+1. Start updating a published file:
+    ```shell
+    > npm run talc update start file-to-update
+    ```
+2. When all of the updates have been made, to commit those updates, run:
+    ```shell
+    > npm run talc update finish file-to-update
+    ```
 
 Notes:
 
@@ -258,10 +272,11 @@ be recognized if placed in metadata.
 | Variable       | Purpose                                                                                                                                         | Required? | Provided? |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------- |
 | `content`      | This outputs any text content; if in a loop it'll output the value at the current index                                                         |           | :+1:      |
-| `create_date`  | Specify the date the content was created; Talc will use the `dateFormat` config attribute to format the output of this attribute                |
-| `files`        | Only available to a `"listing"` template, this provides an array of file metadata including the `filename` and any data for that file              |           | :+1:      |
-| `publish_date` | Specify the date the content moves to a published state; Talc will use the `dateFormat` config attribute to format the output of this attribute | :+1:      |
-| `title`        | The title of the content                                                                                                                        | :+1:      |
+| `create_date`  | Specify the date the content was created; Talc will use the `dateFormat` config attribute to format the output of this attribute                |           |           |
+| `files`        | Only available to a `"listing"` template, this provides an array of file metadata including the `filename` and any data for that file           |           | :+1:      |
+| `publish_date` | Specify the date the content moves to a published state; Talc will use the `dateFormat` config attribute to format the output of this attribute | :+1:      |           |
+| `title`        | The title of the content                                                                                                                        | :+1:      |           |
+| `update_date`  | The date the file was last update; only present if the file has been through the `update` process                                               |           | :+1:      |
 
 ## Loops & Listing Templates
 

@@ -83,3 +83,25 @@ test('should alias "publish" with "p"', (t) => {
 
   sandbox.restore();
 });
+
+test('should delegate an "update" command to the update operator', (t) => {
+  const sandbox = setup();
+  const update = sandbox.stub(operators, 'update');
+
+  run('update', 'start', 'my-file');
+
+  t.true(update.calledWith('start', 'my-file', config));
+
+  sandbox.restore();
+});
+
+test('should alias "update" with "u"', (t) => {
+  const sandbox = setup();
+  const update = sandbox.stub(operators, 'update');
+
+  run('u', 'finish', 'my-file');
+
+  t.true(update.calledWith('finish', 'my-file', config));
+
+  sandbox.restore();
+});

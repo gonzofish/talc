@@ -35,6 +35,7 @@ test('should look for a config file next to the nearest package.json', (t) => {
       ],
     },
     published: 'input',
+    updating: 'rework'
   };
 
   t.deepEqual(load(), userConfig);
@@ -50,6 +51,7 @@ test('should use a default config if one is not present', (t) => {
       templates: [],
     },
     published: 'published',
+    updating: 'updating',
   });
 });
 
@@ -67,6 +69,7 @@ test('should use a partial config', (t) => {
       templates: [],
     },
     published: 'pizza',
+    updating: 'updating',
   });
 });
 

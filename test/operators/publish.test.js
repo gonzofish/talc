@@ -49,28 +49,10 @@ We are family
   sandbox.restore();
 });
 
-test('should do nothing if there is no metadata', (t) => {
-  const config = {
-    drafts: 'drafts',
-  };
-  const draftContents = `Some contents`;
-  const sandbox = sinon.createSandbox();
-  const deleteFile = sandbox.stub(filesUtil, 'deleteFile');
-  const writeFiles = sandbox.stub(filesUtil, 'writeFiles');
-
-  sandbox.stub(filesUtil, 'readFile').returns(draftContents);
-
-  publish('draft-file', config);
-
-  t.true(deleteFile.notCalled);
-  t.true(writeFiles.notCalled);
-
-  sandbox.restore();
-});
-
 test('should be able to handle a file argument with an md extension', (t) => {
   const config = {
     drafts: 'drafts',
+    published: 'published',
   };
   const sandbox = sinon.createSandbox();
   const readFile = sandbox.stub(filesUtil, 'readFile');

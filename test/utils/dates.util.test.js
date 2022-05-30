@@ -1,17 +1,15 @@
 const test = require('ava').default;
-const sinon = require('sinon');
 
 const dates = require('../../lib/utils/dates.util');
+const { mockDate } = require('../test-utils');
+
 let clock;
-let sandbox;
 
 test.before(() => {
-  sandbox = sinon.createSandbox();
-  clock = sinon.useFakeTimers(new Date('2010-03-27 04:30:37').valueOf());
+  clock = mockDate('2010-03-27 04:30:37');
 });
 
 test.after(() => {
-  sandbox.restore();
   clock.restore();
 });
 
@@ -32,7 +30,7 @@ test('#convertToDate should create a date time from a provided date string', (t)
 
 test('#convertToDate should create a date time from a provided date string using a provided format', (t) => {
   const date = new Date('2018-08-13 08:01:00');
-  const result = dates.convertToDate('2018-08-03', 'yyyy-MM-dd');
+  const result = dates.convertToDate('03 Aug 18', 'dd MMM yy');
 
   t.is(result.valueOf(), date.valueOf());
 });
