@@ -89,6 +89,7 @@ test('should convert a markdown file to HTML via showdown', (t) => {
           publish_date: '2018-08-03 08:01:00',
           title: 'File #1',
           unknown: 'hey yo',
+          update_date: '2022-02-02 02:22:22',
         },
       },
       {
@@ -106,6 +107,7 @@ test('should convert a markdown file to HTML via showdown', (t) => {
           create_date: '1984-08-13 02:30:00',
           publish_date: '2002-08-13 00:00:00',
           title: 'Sleepy Time',
+          update_date: '2018-08-03 07:01:30',
         },
       },
     ]),
@@ -809,4 +811,130 @@ test('should let templates to import other templates', (t) => {
     '<html><body>Date: 3/27/2010 is a date</body></html>\n',
     '<html><body>Date: 8/13/2002 is a date</body></html>\n',
   ]);
+
+  sandbox.restore();
+});
+
+test('should allow if blocks for conditional rendering', (t) => {
+  const template = '<html><body><!-- talc:if:[update_date] -->Update date: <!-- talc:update_date --><!-- talc:endif --></body></html>';
+  const config = {
+    build: 'built',
+    dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'iffy-template.html',
+          type: 'post',
+        },
+      ]
+    },
+    published: 'published',
+  };
+  const { sandbox } = setup();
+
+  sandbox.stub(files, 'readFile').callsFake((filepath) => {
+    if (filepath === 'iffy-template.html') {
+      return template;
+    }
+  });
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+
+  t.deepEqual(compiledTemplates, [
+    '<html><body>Update date: 2/2/2022</body></html>\n',
+    '<html><body></body></html>\n',
+    '<html><body>Update date: 8/3/2018</body></html>\n',
+  ]);
+
+  sandbox.restore();
+});
+
+test('should allow more complex if blocks', (t) => {
+  const template = fixtures.load('if-template');
+  const config = {
+    build: 'built',
+    dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'cond-template.html',
+          type: 'post',
+        },
+      ]
+    },
+    published: 'published',
+  };
+  const { sandbox } = setup();
+
+  files.readFiles.returns(fixtures.load('if-files'));
+  sandbox.stub(files, 'readFile').callsFake((filepath) => {
+    if (filepath === 'cond-template.html') {
+      return template;
+    }
+  });
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+  const compiled15 = `<html>
+  <body>
+
+
+
+  </body>
+</html>
+
+`;
+  const compiled17 = `<html>
+  <body>
+
+
+      More than 15
+
+
+      Less than 18
+
+
+
+
+
+    Not a 15
+
+
+  </body>
+</html>
+
+`;
+  const compiled18 = `<html>
+  <body>
+
+
+      More than 15
+
+
+
+
+      Exactly 18
+
+
+
+    Not a 15
+
+
+  </body>
+</html>
+
+`;
+
+  t.deepEqual(compiledTemplates, [
+    compiled17,
+    compiled18,
+    compiled15,
+  ]);
+
+  sandbox.restore();
 });

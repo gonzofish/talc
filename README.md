@@ -328,3 +328,50 @@ If you had a `tags` metadata on some (or all) of your posts that you wanted to o
 </ul>
 ```
 
+## Conditional Logic in Templates
+
+Simple conditional logic is also possible in templates. All conditions must be compared against a template metadata value. The basic syntax is:
+
+```html
+<!-- talc:if:[condition] -->
+...do some stuff if condition is truthy
+<!-- talc:endif -->
+```
+
+> IMPORTANT: the square brackets (`[]`) around the condition must be present for the condition to be properly parsed and evaluated.
+
+Conditions are simple equations of one of two forms the form:
+
+```
+variable
+```
+
+In this form, Talc just checks that the variable is truthy and, if it is, will render the contents within the conditional.
+
+```
+lhs op rhs
+```
+
+In this form, `op` is one of the following operators:
+
+* `===` - strict equals
+* `!==` - strict not-equals
+* `>` - greater-than
+* `>=` - greater-than or equals
+* `<` - less-than
+* `<=` - less-than or equals
+
+Either the lefthand-side (`lhs`) and right-hand side (`rhs`) of the equation must be a metadata variable and the other must be a value. That means all of the following are valid:
+
+```
+published_date >= '2020-01-01'
+'2020-01-01' < created_date
+title !== 'This is a fake title'
+```
+
+While the following are _not_ valid:
+
+```
+published_date < crated_date
+'alpha' !== 'beta'
+```

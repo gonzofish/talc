@@ -1,0 +1,24 @@
+<html>
+  <body>
+    <!-- talc:if:[count >15] -->
+      <!-- talc:if:[count >= 16] -->
+      More than 15
+      <!-- talc:endif -->
+      <!--talc:if:[count<18]-->
+      Less than 18
+      <!--talc:endif-->
+      <!-- talc:if:[ count <= 16 ] -->
+      Less than 17
+      <!-- talc:endif -->
+      <!-- talc:if:[18 === count] -->
+      Exactly 18
+      <!-- talc:endif -->
+    <!--talc:endif -->
+    <!-- talc:if:[count !== 15]-->
+    Not a 15
+    <!-- talc:endif -->
+    <!-- talc:if:[count===fifteen]-->
+    Bad equation value
+    <!-- talc:endif -->
+  </body>
+</html>

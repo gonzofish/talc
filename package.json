@@ -9,7 +9,7 @@
     "coverage": "nyc ava",
     "covhtml": "nyc --reporter=lcov --reporter=text-summary ava",
     "covreport": "nyc report --reporter=text-lcov > coverage.lcov",
-    "lint": "eslint './lib' './test'",
+    "lint": "eslint ./lib/** ./test/**",
     "test": "ava  --verbose",
     "tw": "ava --verbose --watch"
   },
