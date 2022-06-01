@@ -111,6 +111,7 @@ test('#writeFiles should write a list of files to a directory', (t) => {
   const dir = 'some/dir';
 
   sandbox.stub(fs, 'existsSync').returns(true);
+  sandbox.stub(fs, 'mkdirSync').returns();
 
   files.writeFiles(dir, [
     {
