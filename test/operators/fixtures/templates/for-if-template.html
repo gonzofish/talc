@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>List of Posts</title>
+  </head>
+
+  <body>
+    <ul>
+      <!-- talc:for:files -->
+      <li>
+        <strong><!-- talc:title --></strong><br />
+        [<em><!-- talc:publish_date --></em>]
+        <!-- talc:if:[foo] -->
+        <strong>FOO!</strong>
+        <!-- talc:endif -->
+
+        <div class="tags">
+          <!-- talc:for:tags -->
+          <span class="tag"><!-- talc:content --></span>
+          <!-- talc:endfor -->
+        </div>
+
+        <div class="tags">
+          <!-- talc:for:tags -->
+          <span class="tag"><!-- talc:content --></span>
+          <!-- talc:endfor -->
+        </div>
+      </li>
+      <!-- talc:endfor -->
+    </ul>
+  </body>
+</html>

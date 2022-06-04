@@ -254,10 +254,7 @@ test('should be able to use nested for loops', (t) => {
   };
 
   sandbox.stub(files, 'readFile').returns(template);
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
-  sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([
+  sandbox.stub(files, 'readFiles').returns([
     {
       contents: `---
 title: I Have Tags
@@ -271,6 +268,7 @@ My boy was born today!
       filename: 'birth.md',
     },
   ]);
+  sandbox.stub(files, 'writeFiles');
 
   convert(config);
 
@@ -327,10 +325,7 @@ test('should compile an listing template if present in the config', (t) => {
       return indexTemplate;
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
-  sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([
+  sandbox.stub(files, 'readFiles').returns([
     {
       contents: `---
 title: He is Here
@@ -354,6 +349,7 @@ Sue has no headache...finally...
       filename: 'finally.md',
     },
   ]);
+  sandbox.stub(files, 'writeFiles');
 
   convert(config);
 
@@ -362,6 +358,78 @@ Sue has no headache...finally...
   t.is(fileList.length, 3);
 
   t.is(fileList[2].contents, compiledIndexTemplate);
+
+  sandbox.restore();
+});
+
+test('should allow if blocks to work in a listing template', (t) => {
+  const template = templateLoader('loop-template');
+  const forIfTemplate = templateLoader('for-if-template');
+  const compiledForIfTemplate = templateLoader('compiled-for-if-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    index: 'my-index-template.html',
+    pages: {
+      templates: [
+        {
+          filename: 'index.html',
+          template: 'my-for-if-template.html',
+          sortBy: ['publish_date'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-for-if-template.html') {
+      return forIfTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+foo: bar
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+  ]);
+  sandbox.stub(files, 'writeFiles');
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 3);
+
+  t.is(fileList[2].contents, compiledForIfTemplate);
 
   sandbox.restore();
 });
@@ -397,10 +465,7 @@ test('should sort files for a listing by a provided sortBy attribute', (t) => {
       return indexTemplate;
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
-  sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([
+  sandbox.stub(files, 'readFiles').returns([
     {
       contents: `---
 title: He is Here
@@ -434,6 +499,7 @@ Finally out of the old house and into the new!
       filename: 'perfection.md',
     },
   ]);
+  sandbox.stub(files, 'writeFiles');
 
   convert(config);
 
@@ -501,10 +567,7 @@ test('should allow files to be transformed for a listing template', (t) => {
       return indexTemplate;
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
-  sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([
+  sandbox.stub(files, 'readFiles').returns([
     {
       contents: `---
 title: He is Here
@@ -539,6 +602,7 @@ Finally out of the old house and into the new!
       filename: 'perfection.md',
     },
   ]);
+  sandbox.stub(files, 'writeFiles');
 
   convert(config);
 
@@ -598,10 +662,7 @@ test('should enumerate output files with the same output name if no `filename` i
       return indexTemplate;
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
-  sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([
+  sandbox.stub(files, 'readFiles').returns([
     {
       contents: `---
 title: He is Here
@@ -635,6 +696,7 @@ Finally out of the old house and into the new!
       filename: 'perfection.md',
     },
   ]);
+  sandbox.stub(files, 'writeFiles');
 
   convert(config);
 
@@ -706,10 +768,8 @@ test('should let a transformer provide its own template', (t) => {
       return derivedTemplate;
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'readFiles').returns([]);
   sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([]);
 
   convert(config);
 
@@ -760,10 +820,8 @@ test('should let a transformer provide extra metadata', (t) => {
       return '<html><body><!-- talc:custom --></body></html>';
     }
   });
-  sandbox.stub(files, 'readFiles').returns(fixtures.load('files'));
+  sandbox.stub(files, 'readFiles').returns([]);
   sandbox.stub(files, 'writeFiles');
-
-  files.readFiles.returns([]);
 
   convert(config);
 
