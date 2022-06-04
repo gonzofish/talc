@@ -1,6 +1,6 @@
 {
   "name": "talc",
-  "version": "1.0.0-alpha.11",
+  "version": "1.0.0-alpha.12",
   "description": "Talc is a experiment to create posts from Markdown",
   "bin": "bin/talc.js",
   "main": "lib/index.js",
