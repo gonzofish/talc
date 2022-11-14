@@ -14,9 +14,7 @@ const setupReadFiles = () => {
     'myfake/path/pizza.md': '# A Markdown Header',
   };
 
-  sandbox.stub(fs, 'existsSync').callsFake((filepath) => (
-    !!fakeFiles[filepath]
-  ));
+  sandbox.stub(fs, 'existsSync').callsFake((filepath) => !!fakeFiles[filepath]);
   sandbox
     .stub(fs, 'readdirSync')
     .returns(['alpha.txt', 'bravo.txt', 'pizza.md']);
@@ -42,12 +40,7 @@ test('#findRoot should find the nearest directory with a package.json', (t) => {
   const projRoot = process.cwd();
 
   t.is(files.findRoot(), projRoot);
-
-  process.chdir(path.join(projRoot, 'test'));
-
-  t.is(files.findRoot(), projRoot);
-
-  process.chdir(projRoot);
+  t.is(files.findRoot(path.join(projRoot, 'test')), projRoot);
 });
 
 test('#findRoot should just return undefined if it reaches the system root', (t) => {
