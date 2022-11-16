@@ -176,6 +176,102 @@ test('#writeFiles should NOT create the directory if no files have contents', (t
   sandbox.restore();
 });
 
+test('#copyFiles should copy over files to a provide directory', (t) => {
+  const sandbox = sinon.createSandbox();
+  const copyFile = sandbox.stub(fs, 'copyFileSync');
+  const dir = 'dest';
+  const filenames = ['file.txt', 'style.css', 'img.png'];
+  const testCopyCall = (call) => {
+    t.deepEqual(copyFile.getCall(call).args, [
+      filenames[call],
+      path.join(dir, filenames[call]),
+    ]);
+  };
+
+  sandbox.stub(fs, 'existsSync').returns(true);
+  sandbox.stub(fs, 'mkdirSync');
+
+  files.copyFiles(dir, filenames);
+
+  t.is(copyFile.callCount, 3);
+  testCopyCall(0);
+  testCopyCall(1);
+  testCopyCall(2);
+
+  sandbox.restore();
+});
+
+test('#copyFiles should create directories in the destination if they do not exist', (t) => {
+  const sandbox = sinon.createSandbox();
+  const copyFile = sandbox.stub(fs, 'copyFileSync');
+  const mkdir = sandbox.stub(fs, 'mkdirSync');
+  const dir = 'dest/assets';
+  const filenames = [
+    'some/file.txt',
+    'my/style.css',
+    'deep/images/dest/img.png',
+  ];
+  const existDir = path.join(dir, filenames[1]);
+  const testCopyCall = (call) => {
+    t.deepEqual(copyFile.getCall(call).args, [
+      filenames[call],
+      path.join(dir, filenames[call]),
+    ]);
+  };
+  const testDirCall = (dirPath) => {
+    t.true(mkdir.calledWith(path.join(dir, dirPath)));
+  };
+
+  sandbox.stub(fs, 'existsSync').returns(true);
+  sandbox.stub(fs, 'statSync').callsFake((dirPath) => {
+    if (dirPath !== dir && dirPath !== existDir) {
+      throw Error();
+    }
+  });
+
+  files.copyFiles(dir, filenames);
+
+  t.false(mkdir.calledWith(dir));
+  t.false(mkdir.calledWith(existDir));
+  testDirCall('my');
+  testDirCall('deep/images/dest');
+
+  t.is(copyFile.callCount, 3);
+  testCopyCall(0);
+  testCopyCall(1);
+  testCopyCall(2);
+
+  sandbox.restore();
+});
+
+test('#copyFiles should throw an error if it cannot find a source file', (t) => {
+  const sandbox = sinon.createSandbox();
+  const dir = 'dest';
+  const filenames = [
+    'some/file.txt',
+    'my/style.css',
+    'deep/images/dest/img.png',
+  ];
+
+  sandbox.stub(fs, 'copyFileSync');
+  sandbox
+    .stub(fs, 'existsSync')
+    .callsFake((filepath) => filepath !== filenames[1]);
+  sandbox.stub(fs, 'mkdirSync');
+
+  t.throws(
+    () => {
+      files.copyFiles(dir, filenames);
+    },
+    {
+      instanceOf: ReferenceError,
+      message: `Could not copy over the asset named "${filenames[1]}"`,
+    },
+  );
+
+  sandbox.restore();
+});
+
 test('#deleteFile should remove the specified filepath', (t) => {
   const sandbox = sinon.createSandbox();
   const exists = sandbox.stub(fs, 'existsSync');
