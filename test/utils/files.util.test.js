@@ -286,6 +286,40 @@ test('#deleteFile should remove the specified filepath', (t) => {
   sandbox.restore();
 });
 
+test('#checkIsDir should return false for an invalid path', (t) => {
+  const sandbox = sinon.createSandbox();
+
+  sandbox.stub(fs, 'statSync').throwsException();
+
+  t.false(files.checkIsDir('not/a/path'));
+
+  sandbox.restore();
+});
+
+test('#checkIsDir should return false for a path which is NOT a directory', (t) => {
+  const sandbox = sinon.createSandbox();
+
+  sandbox.stub(fs, 'statSync').returns({
+    isDirectory: () => false,
+  });
+
+  t.false(files.checkIsDir('non-dir'));
+
+  sandbox.restore();
+});
+
+test('#checkIsDir should return true for a valid directory', (t) => {
+  const sandbox = sinon.createSandbox();
+
+  sandbox.stub(fs, 'statSync').returns({
+    isDirectory: () => true,
+  });
+
+  t.true(files.checkIsDir('is/known/dir'));
+
+  sandbox.restore();
+});
+
 test('#deleteFile should do nothing if the file does not exist', (t) => {
   const sandbox = sinon.createSandbox();
   const exists = sandbox.stub(fs, 'existsSync');
