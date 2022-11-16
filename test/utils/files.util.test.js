@@ -244,6 +244,57 @@ test('#copyFiles should create directories in the destination if they do not exi
   sandbox.restore();
 });
 
+test('#copyFiles should allow the caller to rename files as they are being copied', (t) => {
+  const sandbox = sinon.createSandbox();
+  const copyFile = sandbox.stub(fs, 'copyFileSync');
+  const mkdir = sandbox.stub(fs, 'mkdirSync');
+  const dir = 'dest';
+  const filenames = [
+    'some/file.txt',
+    'my/style.css',
+    'deep/images/dest/img.png',
+  ];
+  const transformedNames = [
+    'banana.pdf',
+    'monkey/foo/fight.css',
+    'bada/boom.gif',
+  ];
+  const testCopyCall = (call) => {
+    t.deepEqual(copyFile.getCall(call).args, [
+      filenames[call],
+      path.join(dir, transformedNames[call]),
+    ]);
+  };
+  const testDirCall = (dirPath) => {
+    t.true(mkdir.calledWith(path.join(dir, dirPath)));
+  };
+
+  sandbox.stub(fs, 'existsSync').returns(true);
+  sandbox.stub(fs, 'statSync').callsFake((dirPath) => {
+    if (dirPath !== dir) {
+      throw Error();
+    }
+  });
+
+  files.copyFiles(
+    dir,
+    filenames,
+    (filename) => transformedNames[filenames.indexOf(filename)],
+  );
+
+  t.false(mkdir.calledWith(dir));
+  testDirCall('monkey');
+  testDirCall('monkey/foo');
+  testDirCall('bada');
+
+  t.is(copyFile.callCount, 3);
+  testCopyCall(0);
+  testCopyCall(1);
+  testCopyCall(2);
+
+  sandbox.restore();
+});
+
 test('#copyFiles should throw an error if it cannot find a source file', (t) => {
   const sandbox = sinon.createSandbox();
   const dir = 'dest';
