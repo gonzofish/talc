@@ -26,8 +26,9 @@ understands the following attributes:
 
 | Attribute    | Type            | Purpose                                                                                                        | Default Value           |
 | ------------ | --------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `built`      | `string`        | Directory where compiled post will live                                                                        | `"built"`               |
-| `dateFormat` | `string`        | The [date-fns formats](https://date-fns.org/docs/format) to use                                                | `"yyyy-MM-dd HH:mm:ss"` |
+| `assets`     | `string`        | Directory where asset files can be found                                                                       | `""`                    |
+| `built`      | `string`        | Directory where compiled posts will live                                                                       | `"built"`               |
+| `dateFormat` | `string`        | The [`date-fns` formats](https://date-fns.org/docs/format) to use                                                | `"yyyy-MM-dd HH:mm:ss"` |
 | `drafts`     | `string`        | Directory where draft posts live                                                                               | `"drafts"`              |
 | `pages`      | `Pages`         | The different pages to render and (optionally) the directory where they live                                   | `{ templates: [] }`     |
 | `published`  | `string`        | Directory where posts that will be compiled live                                                               | `"published"`           |
@@ -375,3 +376,56 @@ While the following are _not_ valid:
 published_date < crated_date
 'alpha' !== 'beta'
 ```
+
+## Managing Assets
+
+Perhaps you want to include images, videos, or other media assets into your templates and posts. Talc can track these assets and copy them over for you using the `talc:asset:<filename>` directive. How this directive is used differs slightly between templates and posts.
+
+File type|Usage
+---|---
+Template|`<!-- talc:asset:my/file.jpg -->`
+Post|`%talc:asset:my/file.jpg -->`
+
+So a template may look like this:
+
+```html
+<html>
+  <head>
+    <title>My Page with Assets</title>
+
+    <link rel="stylesheet" href="<!-- talc:asset:css/main.css -->">
+  </head>
+
+  <body>
+    <header>
+      <img src="<!-- talc:asset:imgs/banner.png -->" alt="Site banner">
+    </head>
+
+    <main>
+      <!-- talc:content -->
+    </main>
+  </body>
+</html>
+```
+
+And then a post may look like:
+
+```
+---
+title: Post Title
+---
+
+![Img alt text](%talc:asset:imgs/posts/99-balloons.jpg)
+
+There are 99 balloons above!
+```
+
+Talc will identify all of these specified assets and attempt to copy them to your `config.built` directory, creating directories as needed. So when the above files are processed, in the `config.built` directory, Talc will also attempt to create the following directories:
+
+* `css`
+* `imgs`
+* `imgs/posts`
+
+> **NOTE:** if any of the specified assets cannot be found, Talc will throw an `ReferenceError` and abort
+
+If `config.assets` is specified, Talc will look for the the asset files in that directory. Otherwise, it will look for them in the root directory.
