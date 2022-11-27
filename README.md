@@ -410,7 +410,7 @@ So a template may look like this:
 
 And then a post may look like:
 
-```
+```markdown
 ---
 title: Post Title
 ---
