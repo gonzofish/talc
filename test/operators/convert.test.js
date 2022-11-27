@@ -521,6 +521,94 @@ Finally out of the old house and into the new!
   sandbox.restore();
 });
 
+test('should ensure that all files can properly use update_date for sorting', (t) => {
+  const template = templateLoader('loop-template');
+  const indexTemplate = templateLoader('index-template');
+
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'yyyy-MM-dd',
+    pages: {
+      templates: [
+        {
+          template: 'my-index-template.html',
+          sortBy: ['update_date', 'publish_date'],
+          type: 'listing',
+        },
+        {
+          template: 'my-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+
+  sandbox.stub(files, 'readFile').callsFake((filename) => {
+    if (filename === 'my-template.html') {
+      return template;
+    } else if (filename === 'my-index-template.html') {
+      return indexTemplate;
+    }
+  });
+  sandbox.stub(files, 'readFiles').returns([
+    {
+      contents: `---
+title: He is Here
+create_date: 2017-11-13 09:30:00
+publish_date: 2018-08-03 08:01:00
+tags: birth,ben,love
+update_date: 2022-01-01 12:34:56
+---
+
+My boy was born today!
+`,
+      filename: 'birth.md',
+    },
+    {
+      contents: `---
+title: Finally!
+publish_date: 2018-08-10 04:23:00
+---
+
+Sue has no headache...finally...
+`,
+      filename: 'finally.md',
+    },
+    {
+      contents: `---
+title: Life is Good!
+publish_date: 2019-04-01 10:30:00
+---
+
+Finally out of the old house and into the new!
+`,
+      filename: 'perfection.md',
+    },
+  ]);
+  sandbox.stub(files, 'writeFiles');
+
+  convert(config);
+
+  const [, fileList] = files.writeFiles.lastCall.args;
+
+  t.is(fileList.length, 4);
+
+  // hate having logic like this in tests
+  const titles = fileList[3].contents
+    // find all of the `<strong />` tags in the index output
+    .match(/<strong>[^<]+<\/strong>/g)
+    // extract the contents from each `<strong />` tag
+    .map((title) => title.replace(/<strong>([^<]+)<\/strong>/, '$1'));
+
+  t.is(titles[0], 'He is Here');
+  t.is(titles[1], 'Life is Good!');
+  t.is(titles[2], 'Finally!');
+
+  sandbox.restore();
+});
+
 test('should allow files to be transformed for a listing template', (t) => {
   const template = templateLoader('loop-template');
   const indexTemplate = templateLoader('index-template');
