@@ -874,9 +874,10 @@ test('should let templates to import other templates', (t) => {
 });
 
 test('should allow if blocks for conditional rendering', (t) => {
-  const template = '<html><body><!-- talc:if:[update_date] -->Update date: <!-- talc:update_date --><!-- talc:endif --></body></html>';
+  const template =
+    '<html><body><!-- talc:if:[update_date] -->Update date: <!-- talc:update_date --><!-- talc:endif --></body></html>';
   const config = {
-    build: 'built',
+    built: 'built',
     dateFormat: 'M/d/yyyy',
     pages: {
       templates: [
@@ -884,7 +885,7 @@ test('should allow if blocks for conditional rendering', (t) => {
           template: 'iffy-template.html',
           type: 'post',
         },
-      ]
+      ],
     },
     published: 'published',
   };
@@ -913,7 +914,7 @@ test('should allow if blocks for conditional rendering', (t) => {
 test('should allow more complex if blocks', (t) => {
   const template = fixtures.load('if-template');
   const config = {
-    build: 'built',
+    built: 'built',
     dateFormat: 'M/d/yyyy',
     pages: {
       templates: [
@@ -921,7 +922,7 @@ test('should allow more complex if blocks', (t) => {
           template: 'cond-template.html',
           type: 'post',
         },
-      ]
+      ],
     },
     published: 'published',
   };
@@ -988,11 +989,171 @@ test('should allow more complex if blocks', (t) => {
 
 `;
 
-  t.deepEqual(compiledTemplates, [
-    compiled17,
-    compiled18,
-    compiled15,
-  ]);
+  t.deepEqual(compiledTemplates, [compiled17, compiled18, compiled15]);
 
+  sandbox.restore();
+});
+
+test('should be able to manage assets found in templates and posts', (t) => {
+  const sandbox = sinon.createSandbox();
+  const config = {
+    built: 'built',
+    dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'post-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+  const posts = [
+    {
+      contents: `---
+title: Static Uno
+publish_date: 2022-10-24 09:25:00
+---
+
+![My alt text](%talc:asset:img/some_img.png%)
+![](%talc:asset:img/another.gif%)
+`,
+      filename: 'img_file.md',
+    },
+  ];
+  const template = `<html>
+  <head>
+    <link rel="stylesheet" href="<!-- talc:asset:css/main.css -->">
+  </head>
+
+  <body>
+    <img src="<!-- talc:asset:img/banner.jpg -->" title="Site banner" />
+    <!-- talc:content -->
+  </body>
+</html>`;
+  const getResult = (content) => `<html>
+  <head>
+    <link rel="stylesheet" href="css/main.css">
+  </head>
+
+  <body>
+    <img src="img/banner.jpg" title="Site banner" />
+    ${content}
+  </body>
+</html>\n`;
+  const results = [
+    getResult(
+      '<p><img src="img/some_img.png" alt="My alt text" />\n<img src="img/another.gif" alt="" /></p>',
+    ),
+  ];
+
+  sandbox.stub(files, 'copyFiles');
+  sandbox.stub(files, 'readFiles').returns(posts);
+  sandbox.stub(files, 'readFile').callsFake((filepath) => {
+    if (filepath === 'post-template.html') {
+      return template;
+    }
+  });
+  sandbox.stub(files, 'writeFiles');
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+  const copyArgs = files.copyFiles.lastCall.args;
+
+  t.is(compiledTemplates[0], results[0]);
+  t.is(copyArgs.length, 3);
+  t.is(copyArgs[0], 'built');
+  t.deepEqual(copyArgs[1], [
+    'css/main.css',
+    'img/banner.jpg',
+    'img/some_img.png',
+    'img/another.gif',
+  ]);
+  t.is(copyArgs[2], undefined);
+  sandbox.restore();
+});
+
+test('should locate assets in the specified config.assets directory', (t) => {
+  const sandbox = sinon.createSandbox();
+  const config = {
+    assets: 'static/assets',
+    built: 'built',
+    dateFormat: 'M/d/yyyy',
+    pages: {
+      templates: [
+        {
+          template: 'post-template.html',
+          type: 'post',
+        },
+      ],
+    },
+    published: 'published',
+  };
+  const posts = [
+    {
+      contents: `---
+title: Static Uno
+publish_date: 2022-10-24 09:25:00
+---
+
+![My alt text](%talc:asset:img/some_img.png%)
+![](%talc:asset:img/another.gif%)
+`,
+      filename: 'img_file.md',
+    },
+  ];
+  const template = `<html>
+  <head>
+    <link rel="stylesheet" href="<!-- talc:asset:css/main.css -->">
+  </head>
+
+  <body>
+    <img src="<!-- talc:asset:img/banner.jpg -->" title="Site banner" />
+    <!-- talc:content -->
+  </body>
+</html>`;
+  const getResult = (content) => `<html>
+  <head>
+    <link rel="stylesheet" href="css/main.css">
+  </head>
+
+  <body>
+    <img src="img/banner.jpg" title="Site banner" />
+    ${content}
+  </body>
+</html>\n`;
+  const results = [
+    getResult(
+      '<p><img src="img/some_img.png" alt="My alt text" />\n<img src="img/another.gif" alt="" /></p>',
+    ),
+  ];
+
+  sandbox.stub(files, 'copyFiles');
+  sandbox.stub(files, 'readFiles').returns(posts);
+  sandbox.stub(files, 'readFile').callsFake((filepath) => {
+    if (filepath === 'post-template.html') {
+      return template;
+    }
+  });
+  sandbox.stub(files, 'writeFiles');
+
+  convert(config);
+
+  const written = files.writeFiles.lastCall.args[1];
+  const compiledTemplates = written.map(({ contents }) => contents);
+  const copyArgs = files.copyFiles.lastCall.args;
+
+  t.is(compiledTemplates[0], results[0]);
+  t.deepEqual(copyArgs[1], [
+    'static/assets/css/main.css',
+    'static/assets/img/banner.jpg',
+    'static/assets/img/some_img.png',
+    'static/assets/img/another.gif',
+  ]);
+  t.is(copyArgs[2]('something'), 'something');
+  t.is(copyArgs[2]('static/assets/something'), 'something');
   sandbox.restore();
 });
