@@ -4,22 +4,36 @@ const sinon = require('sinon');
 const operators = require('../lib/operators');
 const loadConfig = require('../lib/utils/config.util');
 const run = require('../lib');
-const config = {
-  input: 'posts-md',
-  output: 'posts-html',
-};
 
 const setup = () => {
   const sandbox = sinon.createSandbox();
+  const config = {
+    input: 'posts-md',
+    output: 'posts-html',
+    plugins: [
+      {
+        commands: ['zap', 'z'],
+        name: 'zapper',
+        run: sinon.stub(),
+        type: 'command',
+      },
+      {
+        commands: ['tap', 't'],
+        name: 'taps',
+        run: sinon.stub(),
+        type: 'command',
+      },
+    ],
+  };
 
   sandbox.mock();
   sandbox.stub(loadConfig, 'loadConfig').returns(config);
 
-  return sandbox;
+  return { config, sandbox };
 };
 
 test('should delegate a "new" command to the generator', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const generate = sandbox.stub(operators, 'generateMarkdown');
 
   run('new', 'This is My Title');
@@ -30,7 +44,7 @@ test('should delegate a "new" command to the generator', (t) => {
 });
 
 test('should alias "new" with "n"', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const generate = sandbox.stub(operators, 'generateMarkdown');
 
   run('n', 'Aliased new');
@@ -41,7 +55,7 @@ test('should alias "new" with "n"', (t) => {
 });
 
 test('should delegate a "build" command to the convertor', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const convert = sandbox.stub(operators, 'convert');
 
   run('build');
@@ -52,7 +66,7 @@ test('should delegate a "build" command to the convertor', (t) => {
 });
 
 test('should alias "build" with "b"', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const convert = sandbox.stub(operators, 'convert');
 
   run('b');
@@ -63,7 +77,7 @@ test('should alias "build" with "b"', (t) => {
 });
 
 test('should delegate a "publish" command to the publish operator', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const publish = sandbox.stub(operators, 'publish');
 
   run('publish', 'my-file');
@@ -74,7 +88,7 @@ test('should delegate a "publish" command to the publish operator', (t) => {
 });
 
 test('should alias "publish" with "p"', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const publish = sandbox.stub(operators, 'publish');
 
   run('p', 'aliased');
@@ -85,7 +99,7 @@ test('should alias "publish" with "p"', (t) => {
 });
 
 test('should delegate an "update" command to the update operator', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const update = sandbox.stub(operators, 'update');
 
   run('update', 'start', 'my-file');
@@ -96,12 +110,22 @@ test('should delegate an "update" command to the update operator', (t) => {
 });
 
 test('should alias "update" with "u"', (t) => {
-  const sandbox = setup();
+  const { config, sandbox } = setup();
   const update = sandbox.stub(operators, 'update');
 
   run('u', 'finish', 'my-file');
 
   t.true(update.calledWith('finish', 'my-file', config));
+
+  sandbox.restore();
+});
+
+test('should run a plugin command', (t) => {
+  const { config, sandbox } = setup();
+
+  run('tap', true, 'blue', 12);
+
+  t.true(config.plugins[1].run.calledWith(true, 'blue', 12, config));
 
   sandbox.restore();
 });
