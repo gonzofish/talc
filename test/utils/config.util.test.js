@@ -11,6 +11,9 @@ test.before(() => {
   sandbox.stub(files, 'checkIsDir').returns(true);
   sandbox.stub(files, 'findRoot').returns('/root');
   sandbox.stub(files, 'requireFile').callsFake(() => userConfig);
+  sandbox.stub(files, 'loadModule').callsFake((_, onLoad) => {
+    onLoad({});
+  });
 });
 
 test.after(() => {
@@ -36,6 +39,7 @@ test('should look for a config file next to the nearest package.json', (t) => {
         },
       ],
     },
+    plugins: [],
     published: 'input',
     updating: 'rework',
   };
@@ -53,6 +57,7 @@ test('should use a default config if one is not present', (t) => {
     pages: {
       templates: [],
     },
+    plugins: [],
     published: 'published',
     updating: 'updating',
   });
@@ -72,9 +77,39 @@ test('should use a partial config', (t) => {
     pages: {
       templates: [],
     },
+    plugins: [],
     published: 'pizza',
     updating: 'updating',
   });
+});
+
+test('should load any plugins', (t) => {
+  const run = () => {};
+
+  userConfig = {
+    plugins: ['my-cool-plugin', 'found-plugin'],
+  };
+
+  files.loadModule.callsFake((moduleName, onLoad) => {
+    return onLoad(moduleName, {
+      name: moduleName,
+      run,
+      type: 'command',
+    });
+  });
+
+  t.deepEqual(load().plugins, [
+    {
+      name: 'my-cool-plugin',
+      run,
+      type: 'command',
+    },
+    {
+      name: 'found-plugin',
+      run,
+      type: 'command',
+    },
+  ]);
 });
 
 test('should throw an error if the `assets` value is not a string', (t) => {
@@ -224,5 +259,44 @@ test("should throw an error if a `pages` template's `sortBy` attribute is NOT an
     instanceOf: TypeError,
     message:
       'The `sortBy` attribute of a `templates` item in the `pages` configuration attribute must be an array of strings',
+  });
+});
+
+test('should throw an error if plugins is not an array', (t) => {
+  userConfig = {
+    plugins: 'boop',
+  };
+
+  t.throws(() => load(), {
+    instanceOf: TypeError,
+    message: 'The `plugins` attribute must be an array of package names',
+  });
+});
+
+test('should throw an error if a plugin cannot be found', (t) => {
+  userConfig = {
+    plugins: [
+      'my-cool-plugin',
+      'missing-plugin',
+      'found-plugin',
+      'another-missing-plugin',
+    ],
+  };
+
+  files.loadModule.callsFake((moduleName, onLoad, onError) => {
+    if (
+      moduleName === 'missing-plugin' ||
+      moduleName === 'another-missing-plugin'
+    ) {
+      return onError(moduleName);
+    }
+
+    return onLoad(moduleName, {});
+  });
+
+  t.throws(() => load(), {
+    instanceOf: ReferenceError,
+    message:
+      'The following plugins could not be found: "missing-plugin", "another-missing-plugin"',
   });
 });
